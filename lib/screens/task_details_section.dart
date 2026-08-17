@@ -13,6 +13,8 @@ class TaskDetailsSection extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final screenWidth = MediaQuery.of(context).size.width;
+
     final tasks = [
       TaskData(
         title: 'Set up Slack Account',
@@ -83,9 +85,16 @@ class TaskDetailsSection extends StatelessWidget {
             runSpacing: 16,
             children: tasks
                 .map(
-                  (task) => TaskCard(
-                    task: task,
-                    employeeName: selectedEmployee!.name,
+                  (task) => SizedBox(
+                    width: screenWidth > 1200
+                        ? 300
+                        : screenWidth > 800
+                        ? 250
+                        : double.infinity,
+                    child: TaskCard(
+                      task: task,
+                      employeeName: selectedEmployee!.name,
+                    ),
                   ),
                 )
                 .toList(),
@@ -106,7 +115,6 @@ class TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 280,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,

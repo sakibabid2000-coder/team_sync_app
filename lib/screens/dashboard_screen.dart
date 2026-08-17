@@ -122,7 +122,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
                             SizedBox(
-                              width: 150,
+                              width: 200,
                               child: TextField(
                                 decoration: InputDecoration(
                                   hintText: 'Search employees...',
@@ -137,8 +137,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       color: Colors.grey[300]!,
                                     ),
                                   ),
+                                  isDense: true,
                                   contentPadding: const EdgeInsets.symmetric(
                                     vertical: 10,
+                                    horizontal: 12,
                                   ),
                                 ),
                               ),

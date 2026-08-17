@@ -66,6 +66,13 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = screenWidth > 1200
+        ? 350.0
+        : screenWidth > 800
+        ? 300.0
+        : double.infinity;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -111,16 +118,19 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
             runSpacing: 20,
             children: templates
                 .map(
-                  (template) => TemplateCard(
-                    template: template,
-                    onEdit: () {
-                      // TODO: Implement edit functionality
-                    },
-                    onDelete: () {
-                      setState(() {
-                        templates.removeWhere((t) => t.id == template.id);
-                      });
-                    },
+                  (template) => SizedBox(
+                    width: cardWidth,
+                    child: TemplateCard(
+                      template: template,
+                      onEdit: () {
+                        // TODO: Implement edit functionality
+                      },
+                      onDelete: () {
+                        setState(() {
+                          templates.removeWhere((t) => t.id == template.id);
+                        });
+                      },
+                    ),
                   ),
                 )
                 .toList(),
@@ -147,7 +157,6 @@ class TemplateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 320,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
