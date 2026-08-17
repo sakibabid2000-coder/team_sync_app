@@ -12,6 +12,7 @@ class TaskCreationForm extends StatefulWidget {
 class _TaskCreationFormState extends State<TaskCreationForm> {
   final _titleController = TextEditingController();
   final _documentLinkController = TextEditingController();
+  final _dueDayController = TextEditingController(text: '1');
   int _dueDaysAfterHire = 1;
   bool _isForAllDepartments = false;
   List<String> _selectedDepartments = [];
@@ -27,6 +28,7 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
   void dispose() {
     _titleController.dispose();
     _documentLinkController.dispose();
+    _dueDayController.dispose();
     super.dispose();
   }
 
@@ -139,7 +141,7 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Due in ${_dueDaysAfterHire} day${_dueDaysAfterHire != 1 ? 's' : ''} after hire date',
+                            'Due in $_dueDaysAfterHire day${_dueDaysAfterHire != 1 ? 's' : ''} after hire date',
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF1F2937),
@@ -156,8 +158,18 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
                                   divisions: 89,
                                   label: _dueDaysAfterHire.toString(),
                                   onChanged: (value) {
+                                    final nextValue = value.toInt();
                                     setState(() {
-                                      _dueDaysAfterHire = value.toInt();
+                                      _dueDaysAfterHire = nextValue;
+                                      _dueDayController.text = nextValue
+                                          .toString();
+                                      _dueDayController.selection =
+                                          TextSelection.fromPosition(
+                                            TextPosition(
+                                              offset:
+                                                  _dueDayController.text.length,
+                                            ),
+                                          );
                                     });
                                   },
                                 ),
@@ -166,9 +178,7 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
                                 width: 60,
                                 child: TextField(
                                   keyboardType: TextInputType.number,
-                                  controller: TextEditingController(
-                                    text: _dueDaysAfterHire.toString(),
-                                  ),
+                                  controller: _dueDayController,
                                   onChanged: (value) {
                                     final parsedValue = int.tryParse(value);
                                     if (parsedValue != null &&
@@ -176,6 +186,16 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
                                         parsedValue <= 90) {
                                       setState(() {
                                         _dueDaysAfterHire = parsedValue;
+                                        _dueDayController.text = parsedValue
+                                            .toString();
+                                        _dueDayController.selection =
+                                            TextSelection.fromPosition(
+                                              TextPosition(
+                                                offset: _dueDayController
+                                                    .text
+                                                    .length,
+                                              ),
+                                            );
                                       });
                                     }
                                   },

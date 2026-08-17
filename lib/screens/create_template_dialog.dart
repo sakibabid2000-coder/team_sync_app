@@ -16,7 +16,7 @@ class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   String? _selectedDepartment;
-  List<TaskTemplate> _tasks = [];
+  final List<TaskTemplate> _tasks = [];
   int _currentStep = 0;
 
   final List<String> _departments = ['Engineering', 'Marketing', 'Sales', 'HR'];
@@ -176,7 +176,7 @@ class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
-            value: _selectedDepartment,
+            initialValue: _selectedDepartment,
             decoration: InputDecoration(
               labelText: 'Department *',
               border: OutlineInputBorder(

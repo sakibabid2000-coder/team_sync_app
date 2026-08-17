@@ -185,7 +185,7 @@ class Sidebar extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withAlpha(51),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(Icons.people, color: Colors.white),
@@ -219,7 +219,7 @@ class Sidebar extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? Colors.white.withOpacity(0.2)
+                        ? Colors.white.withAlpha(51)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -253,7 +253,7 @@ class Sidebar extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withAlpha(77),
                     shape: BoxShape.circle,
                   ),
                   child: const Center(

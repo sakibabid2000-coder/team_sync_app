@@ -163,7 +163,7 @@ class TemplateCard extends StatelessWidget {
         border: Border.all(color: Colors.grey[300]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -200,7 +200,7 @@ class TemplateCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: _getDepartmentColor(template.department)
-                            .withOpacity(0.1),
+                            .withAlpha(26),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -214,11 +214,21 @@ class TemplateCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                PopupMenuButton(
-                  itemBuilder: (context) => [
-                    PopupMenuItem(child: const Text('Edit'), onTap: onEdit),
-                    PopupMenuItem(child: const Text('Delete'), onTap: onDelete),
+                PopupMenuButton<String>(
+                  itemBuilder: (context) => const [
+                    PopupMenuItem<String>(value: 'edit', child: Text('Edit')),
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Text('Delete'),
+                    ),
                   ],
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      onEdit();
+                    } else if (value == 'delete') {
+                      onDelete();
+                    }
+                  },
                   icon: const Icon(Icons.more_vert),
                 ),
               ],
