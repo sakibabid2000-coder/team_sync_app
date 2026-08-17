@@ -1,5 +1,16 @@
 import 'package:flutter/material.dart';
 
+import 'screens/announcements_screen.dart';
+import 'screens/approval_workflow_screen.dart';
+import 'screens/dashboard_screen.dart';
+import 'screens/employee_journey_screen.dart';
+import 'screens/employees_screen.dart';
+import 'screens/integration_hub_screen.dart';
+import 'screens/reports_screen.dart';
+import 'screens/settings_screen.dart';
+import 'screens/tasks_screen.dart';
+import 'screens/templates_screen.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -7,115 +18,327 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Team Sync',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6B46C1),
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.white,
+            backgroundColor: const Color(0xFF6B46C1),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            textStyle: const TextStyle(
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFF6B46C1),
+            side: const BorderSide(color: Color(0xFF6B46C1), width: 1.2),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            textStyle: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const Dashboard(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class Dashboard extends StatefulWidget {
+  const Dashboard({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<Dashboard> createState() => _DashboardState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _DashboardState extends State<Dashboard> {
+  int _selectedIndex = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  final List<NavigationItem> _navigationItems = [
+    NavigationItem(icon: Icons.dashboard, label: 'Dashboard', index: 0),
+    NavigationItem(icon: Icons.people, label: 'Employees', index: 1),
+    NavigationItem(icon: Icons.task_alt, label: 'Tasks', index: 2),
+    NavigationItem(icon: Icons.description, label: 'Templates', index: 3),
+    NavigationItem(icon: Icons.approval, label: 'Approvals', index: 4),
+    NavigationItem(icon: Icons.person_outline, label: 'Journey', index: 5),
+    NavigationItem(icon: Icons.announcement, label: 'Announcements', index: 6),
+    NavigationItem(icon: Icons.assessment, label: 'Reports', index: 7),
+    NavigationItem(
+      icon: Icons.integration_instructions,
+      label: 'Integrations',
+      index: 8,
+    ),
+    NavigationItem(icon: Icons.settings, label: 'Settings', index: 9),
+  ];
+
+  Widget _buildContent(int index) {
+    switch (index) {
+      case 0:
+        return const DashboardScreen();
+      case 1:
+        return const EmployeesScreen();
+      case 2:
+        return const TasksScreen();
+      case 3:
+        return const TemplatesScreen();
+      case 4:
+        return const ApprovalWorkflowScreen();
+      case 5:
+        return const EmployeeJourneyScreen();
+      case 6:
+        return const AnnouncementsScreen();
+      case 7:
+        return const ReportsScreen();
+      case 8:
+        return const IntegrationHubScreen();
+      case 9:
+        return const SettingsScreen();
+      default:
+        return Container(
+          color: Colors.grey[50],
+          child: Center(
+            child: Text(
+              'Content for ${_navigationItems[index].label}',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ),
+        );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    bool isWebView = MediaQuery.of(context).size.width > 600;
+
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      body: Row(
+        children: [
+          // Sidebar for web view
+          if (isWebView)
+            Sidebar(
+              items: _navigationItems,
+              selectedIndex: _selectedIndex,
+              onItemSelected: (index) {
+                setState(() => _selectedIndex = index);
+              },
             ),
-          ],
-        ),
+          // Main content area
+          Expanded(
+            child: Column(
+              children: [
+                // Header/Top bar
+                Container(
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey[300]!, width: 1),
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (!isWebView)
+                        IconButton(
+                          icon: const Icon(Icons.menu),
+                          onPressed: () {
+                            // TODO: Show drawer on mobile
+                          },
+                        ),
+                      Text(
+                        _navigationItems[_selectedIndex].label,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(width: 40),
+                    ],
+                  ),
+                ),
+                // Content area
+                Expanded(child: _buildContent(_selectedIndex)),
+              ],
+            ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+      // Bottom navigation for mobile view
+      bottomNavigationBar: !isWebView
+          ? BottomNavigationBar(
+              currentIndex: _selectedIndex,
+              onTap: (index) {
+                setState(() => _selectedIndex = index);
+              },
+              type: BottomNavigationBarType.fixed,
+              items: _navigationItems
+                  .map(
+                    (item) => BottomNavigationBarItem(
+                      icon: Icon(item.icon),
+                      label: item.label,
+                    ),
+                  )
+                  .toList(),
+            )
+          : null,
+    );
+  }
+}
+
+// Navigation Item Model
+class NavigationItem {
+  final IconData icon;
+  final String label;
+  final int index;
+
+  NavigationItem({
+    required this.icon,
+    required this.label,
+    required this.index,
+  });
+}
+
+// Sidebar Widget
+class Sidebar extends StatelessWidget {
+  final List<NavigationItem> items;
+  final int selectedIndex;
+  final Function(int) onItemSelected;
+
+  const Sidebar({
+    super.key,
+    required this.items,
+    required this.selectedIndex,
+    required this.onItemSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 220,
+      color: const Color(0xFF4C3A8F), // Dark purple from UI
+      child: Column(
+        children: [
+          // Logo/Header
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(51),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.people, color: Colors.white),
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  'Team Sync',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(color: Colors.white24),
+          // Navigation Items
+          Expanded(
+            child: ListView.builder(
+              padding: EdgeInsets.zero,
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                bool isSelected = selectedIndex == item.index;
+
+                return Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Colors.white.withAlpha(51)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ListTile(
+                    leading: Icon(
+                      item.icon,
+                      color: isSelected ? Colors.white : Colors.white70,
+                    ),
+                    title: Text(
+                      item.label,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : Colors.white70,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                      ),
+                    ),
+                    onTap: () => onItemSelected(item.index),
+                  ),
+                );
+              },
+            ),
+          ),
+          const Divider(color: Colors.white24),
+          // User Profile at bottom
+          Padding(
+            padding: const EdgeInsets.all(15),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(77),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.person, color: Colors.white, size: 24),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text(
+                        'Sarah Johnson',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        'HR Manager',
+                        style: TextStyle(color: Colors.white70, fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
