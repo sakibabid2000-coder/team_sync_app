@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
 import 'screens/announcements_screen.dart';
+import 'screens/approval_workflow_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/employee_journey_screen.dart';
 import 'screens/employees_screen.dart';
+import 'screens/integration_hub_screen.dart';
 import 'screens/reports_screen.dart';
+import 'screens/settings_screen.dart';
 import 'screens/tasks_screen.dart';
 import 'screens/templates_screen.dart';
 
@@ -70,10 +74,16 @@ class _DashboardState extends State<Dashboard> {
     NavigationItem(icon: Icons.people, label: 'Employees', index: 1),
     NavigationItem(icon: Icons.task_alt, label: 'Tasks', index: 2),
     NavigationItem(icon: Icons.description, label: 'Templates', index: 3),
-    NavigationItem(icon: Icons.announcement, label: 'Announcements', index: 4),
-    NavigationItem(icon: Icons.assessment, label: 'Reports', index: 5),
-    NavigationItem(icon: Icons.history, label: 'Activity Logs', index: 6),
-    NavigationItem(icon: Icons.settings, label: 'Settings', index: 7),
+    NavigationItem(icon: Icons.approval, label: 'Approvals', index: 4),
+    NavigationItem(icon: Icons.person_outline, label: 'Journey', index: 5),
+    NavigationItem(icon: Icons.announcement, label: 'Announcements', index: 6),
+    NavigationItem(icon: Icons.assessment, label: 'Reports', index: 7),
+    NavigationItem(
+      icon: Icons.integration_instructions,
+      label: 'Integrations',
+      index: 8,
+    ),
+    NavigationItem(icon: Icons.settings, label: 'Settings', index: 9),
   ];
 
   Widget _buildContent(int index) {
@@ -87,9 +97,17 @@ class _DashboardState extends State<Dashboard> {
       case 3:
         return const TemplatesScreen();
       case 4:
-        return const AnnouncementsScreen();
+        return const ApprovalWorkflowScreen();
       case 5:
+        return const EmployeeJourneyScreen();
+      case 6:
+        return const AnnouncementsScreen();
+      case 7:
         return const ReportsScreen();
+      case 8:
+        return const IntegrationHubScreen();
+      case 9:
+        return const SettingsScreen();
       default:
         return Container(
           color: Colors.grey[50],
