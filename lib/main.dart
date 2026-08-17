@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'screens/announcements_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/employees_screen.dart';
+import 'screens/reports_screen.dart';
+import 'screens/tasks_screen.dart';
 import 'screens/templates_screen.dart';
 
 void main() {
@@ -76,8 +80,16 @@ class _DashboardState extends State<Dashboard> {
     switch (index) {
       case 0:
         return const DashboardScreen();
+      case 1:
+        return const EmployeesScreen();
+      case 2:
+        return const TasksScreen();
       case 3:
         return const TemplatesScreen();
+      case 4:
+        return const AnnouncementsScreen();
+      case 5:
+        return const ReportsScreen();
       default:
         return Container(
           color: Colors.grey[50],

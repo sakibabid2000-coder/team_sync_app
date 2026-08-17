@@ -65,40 +65,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 const SizedBox(height: 30),
-                // Stats Cards Row
-                Wrap(
-                  spacing: 20,
-                  runSpacing: 20,
-                  children: [
-                    StatCard(
-                      title: 'Total New Hires',
-                      value: '24',
-                      subtitle: 'Active',
-                      icon: Icons.person_add,
-                      color: const Color(0xFF6B46C1),
-                    ),
-                    StatCard(
-                      title: 'Completed Onboarding',
-                      value: '7',
-                      subtitle: 'This Month',
-                      icon: Icons.check_circle,
-                      color: const Color(0xFF10B981),
-                    ),
-                    StatCard(
-                      title: 'Average Progress',
-                      value: '68%',
-                      subtitle: 'Across all',
-                      icon: Icons.trending_up,
-                      color: const Color(0xFF3B82F6),
-                    ),
-                    StatCard(
-                      title: 'Overdue Tasks',
-                      value: '5',
-                      subtitle: 'Require attention',
-                      icon: Icons.schedule,
-                      color: const Color(0xFFEF4444),
-                    ),
-                  ],
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final columnCount = constraints.maxWidth > 1100 ? 4 : 2;
+                    final gap = 20.0;
+                    final totalGap = gap * (columnCount - 1);
+                    final cardWidth =
+                        (constraints.maxWidth - totalGap) / columnCount;
+
+                    return Wrap(
+                      spacing: 20,
+                      runSpacing: 20,
+                      children: [
+                        SizedBox(
+                          width: cardWidth.clamp(180.0, 260.0),
+                          child: StatCard(
+                            title: 'Total New Hires',
+                            value: '24',
+                            subtitle: 'Active',
+                            icon: Icons.person_add,
+                            color: const Color(0xFF6B46C1),
+                          ),
+                        ),
+                        SizedBox(
+                          width: cardWidth.clamp(180.0, 260.0),
+                          child: StatCard(
+                            title: 'Completed Onboarding',
+                            value: '7',
+                            subtitle: 'This Month',
+                            icon: Icons.check_circle,
+                            color: const Color(0xFF10B981),
+                          ),
+                        ),
+                        SizedBox(
+                          width: cardWidth.clamp(180.0, 260.0),
+                          child: StatCard(
+                            title: 'Average Progress',
+                            value: '68%',
+                            subtitle: 'Across all',
+                            icon: Icons.trending_up,
+                            color: const Color(0xFF3B82F6),
+                          ),
+                        ),
+                        SizedBox(
+                          width: cardWidth.clamp(180.0, 260.0),
+                          child: StatCard(
+                            title: 'Overdue Tasks',
+                            value: '5',
+                            subtitle: 'Require attention',
+                            icon: Icons.schedule,
+                            color: const Color(0xFFEF4444),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 40),
                 // Pipeline Overview
