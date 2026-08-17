@@ -14,6 +14,11 @@ class TaskDetailsSection extends StatelessWidget {
     }
 
     final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = screenWidth > 1200
+        ? 300.0
+        : screenWidth > 800
+        ? 250.0
+        : (screenWidth - 64).clamp(220.0, 260.0);
 
     final tasks = [
       TaskData(
@@ -90,11 +95,7 @@ class TaskDetailsSection extends StatelessWidget {
             children: tasks
                 .map(
                   (task) => SizedBox(
-                    width: screenWidth > 1200
-                        ? 300
-                        : screenWidth > 800
-                        ? 250
-                        : double.infinity,
+                    width: cardWidth,
                     child: TaskCard(
                       task: task,
                       employeeName: selectedEmployee!.name,
