@@ -194,13 +194,14 @@ class TaskCard extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF6B46C1),
                       side: const BorderSide(color: Color(0xFF6B46C1)),
                       padding: const EdgeInsets.symmetric(vertical: 8),
                     ),
                     onPressed: () {},
                     child: const Text(
                       'Mark Done',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF6B46C1)),
+                      style: TextStyle(fontSize: 12),
                     ),
                   ),
                 )
@@ -208,13 +209,14 @@ class TaskCard extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.grey[700],
                       side: const BorderSide(color: Colors.grey),
                       padding: const EdgeInsets.symmetric(vertical: 8),
                     ),
                     onPressed: () {},
                     child: const Text(
                       'View Details',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(fontSize: 12),
                     ),
                   ),
                 ),

@@ -44,7 +44,8 @@ class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
     if (_nameController.text.isEmpty ||
         _selectedDepartment == null ||
         _tasks.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      messenger?.showSnackBar(
         const SnackBar(content: Text('Please fill all required fields')),
       );
       return;
@@ -139,6 +140,7 @@ class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
                               },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF6B46C1),
+                          foregroundColor: Colors.white,
                         ),
                         child: Text(_currentStep == 1 ? 'Create' : 'Next'),
                       ),
@@ -228,6 +230,7 @@ class _CreateTemplateDialogState extends State<CreateTemplateDialog> {
                 label: const Text('Add Task'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6B46C1),
+                  foregroundColor: Colors.white,
                 ),
               ),
             ],

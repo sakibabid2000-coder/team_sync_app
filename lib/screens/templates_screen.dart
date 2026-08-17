@@ -52,9 +52,11 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
   }
 
   void _createNewTemplate() {
+    if (!mounted) return;
+
     showDialog(
       context: context,
-      builder: (context) => CreateTemplateDialog(
+      builder: (dialogContext) => CreateTemplateDialog(
         onTemplateCreated: (template) {
           setState(() {
             templates.add(template);
@@ -106,6 +108,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                         label: const Text('Create Template'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF6B46C1),
+                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 24,
                             vertical: 16,
@@ -147,6 +150,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                     label: const Text('Create Template'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6B46C1),
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 16,
@@ -334,6 +338,7 @@ class TemplateCard extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6B46C1),
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
                 child: const Text('Manage Template'),

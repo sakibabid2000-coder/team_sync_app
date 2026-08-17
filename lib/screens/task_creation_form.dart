@@ -34,14 +34,16 @@ class _TaskCreationFormState extends State<TaskCreationForm> {
 
   void _createTask() {
     if (_titleController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Task title is required')));
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      messenger?.showSnackBar(
+        const SnackBar(content: Text('Task title is required')),
+      );
       return;
     }
 
     if (!_isForAllDepartments && _selectedDepartments.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      messenger?.showSnackBar(
         const SnackBar(content: Text('Please select at least one department')),
       );
       return;
