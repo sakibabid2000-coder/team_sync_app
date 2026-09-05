@@ -59,16 +59,11 @@ something, not just decoration:
 - **Integrations** — Connect / Disconnect / Manage / Learn more all update real state
 - **Settings** — notification toggles, onboarding duration, theme, and a confirmed "Reset All Settings to Default"
 - **Announcements** — "Open details" shows the full announcement in a dialog
-
-## What's not implemented yet
-
-From the approved project proposal, still outstanding:
-
-- **Activity Logs** — a history log of exactly when an employee checked off each task (Phase 5)
-- **Filter by Department** — managers filtering the dashboard/employee list down to one department, e.g. "Marketing only" (Phase 5)
-- **Export Completion Report** — a printable HTML view of an employee's completed onboarding file (Phase 5)
-- **Archive Employee** — moving an employee to an "Onboarded" status to clean up the active dashboard pool (Phase 5)
-- **Overdue indicators on individual tasks** — task rows should switch to red text once their due date has passed; currently only the aggregate "overdue tasks" count is colored (Phase 4)
+- **Activity Logs** — a shared log records task completions and manager nudges; the Reports screen's activity feed shows these live, ahead of historical seed entries (Phase 5)
+- **Filter by Department** — the dashboard's employee table has department filter chips alongside the name search (Phase 5)
+- **Overdue indicators** — incomplete tasks past their due date render in red with an "Overdue" label, both on the dashboard and in the employee profile panel (Phase 4)
+- **Export Completion Report** — the employee profile panel can generate an HTML onboarding report (employee info + completed tasks) with a "Copy HTML" action (Phase 5)
+- **Archive Employee** — employees can be archived to an "Onboarded" status via a per-card menu, hidden from the default view, and restored again (Phase 5)
 
 Beyond the proposal's scope (built as extra functionality, not required by
 Phase 1–5, but present in the app and kept working):
@@ -91,17 +86,19 @@ Phase 1–5, but present in the app and kept working):
 
 ## What can be done next
 
-1. Finish the remaining Phase 4/5 items above (Activity Logs, Filter by
-   Department, Export Completion Report, Archive Employee, per-task
-   overdue indicators).
-2. Add a real data layer (e.g. a repository/service abstraction) so
+All Phase 1–5 proposal items are now implemented. Remaining ideas:
+
+1. Add a real data layer (e.g. a repository/service abstraction) so
    screens aren't each holding their own disconnected copies of mock
    data — today, for example, "Alex Morgan" exists as separate,
    independently-editable records in the Dashboard, Employees, and Task
    Details screens.
-3. Add persistence (local: `shared_preferences`/`sqflite`; or a real
+2. Add persistence (local: `shared_preferences`/`sqflite`; or a real
    backend) so onboarding progress survives a restart.
-4. Add authentication and role-based access (Admin/HR vs. Manager vs.
+3. Add authentication and role-based access (Admin/HR vs. Manager vs.
    New Hire), per the proposal's Phase 1 user roles.
-5. Wire the Tasks and Reports screens up to the same underlying data
+4. Wire the Tasks and Reports screens up to the same underlying data
    model as the rest of the app instead of static mock content.
+5. Actually render/print the Export Completion Report's HTML (e.g. via
+   a WebView or by writing it to a file) instead of only showing/
+   copying the raw markup.
