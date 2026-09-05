@@ -59,6 +59,67 @@ class _IntegrationHubScreenState extends State<IntegrationHubScreen> {
     ),
   ];
 
+  void _connect(IntegrationItem item) {
+    setState(() {
+      item.isConnected = true;
+      item.status = 'Connected';
+      item.lastSync = 'Synced just now';
+    });
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Connected ${item.name}')));
+  }
+
+  void _disconnect(IntegrationItem item) {
+    setState(() {
+      item.isConnected = false;
+      item.status = 'Available';
+      item.lastSync = null;
+    });
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Disconnected ${item.name}')));
+  }
+
+  void _manage(IntegrationItem item) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(item.name),
+        content: Text(item.lastSync ?? 'No sync activity yet.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _disconnect(item);
+            },
+            child: const Text('Disconnect'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _learnMore(IntegrationItem item) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(item.name),
+        content: Text(item.description),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Got it'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final connected = integrations.where((i) => i.isConnected).toList();
@@ -128,7 +189,14 @@ class _IntegrationHubScreenState extends State<IntegrationHubScreen> {
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 14),
-            ...connected.map((item) => _IntegrationCard(item: item)),
+            ...connected.map(
+              (item) => _IntegrationCard(
+                item: item,
+                onConnect: () => _connect(item),
+                onManage: () => _manage(item),
+                onLearnMore: () => _learnMore(item),
+              ),
+            ),
             const SizedBox(height: 28),
           ],
           // Available Integrations
@@ -138,7 +206,14 @@ class _IntegrationHubScreenState extends State<IntegrationHubScreen> {
                 ?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 14),
-          ...available.map((item) => _IntegrationCard(item: item)),
+          ...available.map(
+            (item) => _IntegrationCard(
+              item: item,
+              onConnect: () => _connect(item),
+              onManage: () => _manage(item),
+              onLearnMore: () => _learnMore(item),
+            ),
+          ),
         ],
       ),
     );
@@ -186,8 +261,16 @@ class _QuickStatCard extends StatelessWidget {
 
 class _IntegrationCard extends StatelessWidget {
   final IntegrationItem item;
+  final VoidCallback onConnect;
+  final VoidCallback onManage;
+  final VoidCallback onLearnMore;
 
-  const _IntegrationCard({required this.item});
+  const _IntegrationCard({
+    required this.item,
+    required this.onConnect,
+    required this.onManage,
+    required this.onLearnMore,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -280,11 +363,17 @@ class _IntegrationCard extends StatelessWidget {
           Row(
             children: [
               if (item.isConnected)
-                OutlinedButton(onPressed: () {}, child: const Text('Manage'))
+                OutlinedButton(onPressed: onManage, child: const Text('Manage'))
               else
-                ElevatedButton(onPressed: () {}, child: const Text('Connect')),
+                ElevatedButton(
+                  onPressed: onConnect,
+                  child: const Text('Connect'),
+                ),
               const SizedBox(width: 8),
-              OutlinedButton(onPressed: () {}, child: const Text('Learn more')),
+              OutlinedButton(
+                onPressed: onLearnMore,
+                child: const Text('Learn more'),
+              ),
             ],
           ),
         ],
@@ -297,9 +386,9 @@ class IntegrationItem {
   final String name;
   final String description;
   final String icon;
-  final String status;
-  final bool isConnected;
-  final String? lastSync;
+  String status;
+  bool isConnected;
+  String? lastSync;
 
   IntegrationItem({
     required this.name,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/activity_log_service.dart';
 import 'employee_profile_panel.dart';
 import 'task_details_section.dart';
 
@@ -12,6 +13,11 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   EmployeeData? _selectedEmployee;
+  bool _showMaintenanceBanner = true;
+  String _searchQuery = '';
+  String _selectedDepartment = 'All';
+
+  static const _departments = ['All', 'Engineering', 'Marketing', 'Sales', 'HR'];
 
   @override
   Widget build(BuildContext context) {
@@ -24,47 +30,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // System Maintenance Banner
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF3CD), // Light yellow
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: const Color(0xFFFFE69C)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.info,
-                        color: Color(0xFF856404),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'System Maintenance on Sunday, 2:00 AM - 4:00 AM UTC. Some features may be unavailable.',
-                          style: TextStyle(
-                            color: const Color(0xFF856404),
-                            fontSize: 13,
+                if (_showMaintenanceBanner) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3CD), // Light yellow
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFFFFE69C)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.info,
+                          color: Color(0xFF856404),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'System Maintenance on Sunday, 2:00 AM - 4:00 AM UTC. Some features may be unavailable.',
+                            style: TextStyle(
+                              color: const Color(0xFF856404),
+                              fontSize: 13,
+                            ),
                           ),
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.close,
-                          size: 18,
-                          color: Color(0xFF856404),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.close,
+                            size: 18,
+                            color: Color(0xFF856404),
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () {
+                            setState(() => _showMaintenanceBanner = false);
+                          },
                         ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        onPressed: () {},
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 30),
+                  const SizedBox(height: 30),
+                ],
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final columnCount = constraints.maxWidth > 1100 ? 4 : 2;
@@ -201,7 +211,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
                           TextButton.icon(
-                            onPressed: () {},
+                            onPressed: () => _showAllActionItems(context),
                             icon: const Icon(Icons.arrow_forward, size: 16),
                             label: const Text('View all'),
                           ),
@@ -279,7 +289,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'All Departments',
+                                    _selectedDepartment == 'All'
+                                        ? 'All Departments'
+                                        : '$_selectedDepartment Department',
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleMedium
@@ -289,6 +301,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   SizedBox(
                                     width: double.infinity,
                                     child: TextField(
+                                      onChanged: (value) {
+                                        setState(() => _searchQuery = value);
+                                      },
                                       decoration: InputDecoration(
                                         hintText: 'Search employees...',
                                         hintStyle: TextStyle(
@@ -323,13 +338,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'All Departments',
+                                  _selectedDepartment == 'All'
+                                      ? 'All Departments'
+                                      : '$_selectedDepartment Department',
                                   style: Theme.of(context).textTheme.titleMedium
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                                 SizedBox(
                                   width: 200,
                                   child: TextField(
+                                    onChanged: (value) {
+                                      setState(() => _searchQuery = value);
+                                    },
                                     decoration: InputDecoration(
                                       hintText: 'Search employees...',
                                       hintStyle: TextStyle(
@@ -359,6 +379,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           },
                         ),
                       ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _departments.map((department) {
+                            return ChoiceChip(
+                              label: Text(department),
+                              selected: _selectedDepartment == department,
+                              selectedColor: const Color(
+                                0xFF6B46C1,
+                              ).withAlpha(26),
+                              onSelected: (_) {
+                                setState(() => _selectedDepartment = department);
+                              },
+                              labelStyle: TextStyle(
+                                color: _selectedDepartment == department
+                                    ? const Color(0xFF6B46C1)
+                                    : Colors.grey[700],
+                                fontWeight: FontWeight.w600,
+                              ),
+                              side: BorderSide(
+                                color: _selectedDepartment == department
+                                    ? const Color(0xFF6B46C1)
+                                    : Colors.grey[300]!,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                       Divider(height: 1, color: Colors.grey[300]),
                       // Employee List
                       SingleChildScrollView(
@@ -380,7 +433,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 30),
                 // Task Details Section
-                TaskDetailsSection(selectedEmployee: _selectedEmployee),
+                TaskDetailsSection(
+                  key: ValueKey(_selectedEmployee?.name),
+                  selectedEmployee: _selectedEmployee,
+                ),
               ],
             ),
           ),
@@ -388,12 +444,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
         // Employee Profile Panel
         if (_selectedEmployee != null)
           EmployeeProfilePanel(
+            key: ValueKey(_selectedEmployee!.name),
             employee: _selectedEmployee!,
             onClose: () {
               setState(() => _selectedEmployee = null);
             },
           ),
       ],
+    );
+  }
+
+  void _showAllActionItems(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Manager Action Center'),
+        content: SizedBox(
+          width: 360,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                _ActionCenterGroup(
+                  title: 'Follow-ups',
+                  items: [
+                    'Send equipment checklist',
+                    'Confirm laptop handoff',
+                    'Review contract sign-off',
+                  ],
+                ),
+                SizedBox(height: 16),
+                _ActionCenterGroup(
+                  title: 'At risk',
+                  items: [
+                    'Jamie Lee: 40% complete',
+                    'Casey Brown: 20% complete',
+                  ],
+                ),
+                SizedBox(height: 16),
+                _ActionCenterGroup(
+                  title: 'This week',
+                  items: [
+                    '4 new hires joined',
+                    '2 policy acknowledgements due',
+                    '1 manager review scheduled',
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -441,7 +549,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     ];
 
-    return employees
+    final filteredEmployees = employees.where((employee) {
+      final matchesSearch =
+          _searchQuery.isEmpty ||
+          employee.name.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesDepartment =
+          _selectedDepartment == 'All' ||
+          employee.department == _selectedDepartment;
+      return matchesSearch && matchesDepartment;
+    }).toList();
+
+    return filteredEmployees
         .map(
           (employee) => DataRow(
             onSelectChanged: (selected) {
@@ -541,7 +659,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       vertical: 8,
                     ),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    ActivityLogService.logNudge(employee.name);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Reminder logged for ${employee.name}',
+                        ),
+                      ),
+                    );
+                  },
                   child: const Text('Nudge', style: TextStyle(fontSize: 12)),
                 ),
               ),
@@ -549,6 +676,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         )
         .toList();
+  }
+}
+
+class _ActionCenterGroup extends StatelessWidget {
+  final String title;
+  final List<String> items;
+
+  const _ActionCenterGroup({required this.title, required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 8),
+        ...items.map(
+          (item) => Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Text('• $item'),
+          ),
+        ),
+      ],
+    );
   }
 }
 

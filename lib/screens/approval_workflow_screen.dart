@@ -10,60 +10,104 @@ class ApprovalWorkflowScreen extends StatefulWidget {
 class _ApprovalWorkflowScreenState extends State<ApprovalWorkflowScreen> {
   String _selectedFilter = 'All';
 
+  final List<ApprovalItem> _items = [
+    ApprovalItem(
+      id: '001',
+      employeeName: 'Alex Morgan',
+      itemType: 'Equipment Setup',
+      status: 'Pending',
+      dueDate: 'Today',
+      priority: 'High',
+      description: 'Laptop, monitor, and keyboard allocation confirmed',
+    ),
+    ApprovalItem(
+      id: '002',
+      employeeName: 'Jamie Lee',
+      itemType: 'Security Clearance',
+      status: 'In Review',
+      dueDate: 'Tomorrow',
+      priority: 'High',
+      description: 'Background check and security badge approval',
+    ),
+    ApprovalItem(
+      id: '003',
+      employeeName: 'Taylor Smith',
+      itemType: 'Policy Acknowledgement',
+      status: 'Pending',
+      dueDate: '3 days',
+      priority: 'Medium',
+      description: 'Confirm receipt and understanding of all company policies',
+    ),
+    ApprovalItem(
+      id: '004',
+      employeeName: 'Casey Brown',
+      itemType: 'Manager Handoff',
+      status: 'Pending',
+      dueDate: '5 days',
+      priority: 'Medium',
+      description: 'Initial 1:1 meeting and team introduction session',
+    ),
+    ApprovalItem(
+      id: '005',
+      employeeName: 'Morgan Davis',
+      itemType: 'System Access',
+      status: 'Approved',
+      dueDate: 'Completed',
+      priority: 'Low',
+      description: 'All development and collaboration tools provisioned',
+    ),
+  ];
+
+  void _approve(ApprovalItem item) {
+    setState(() => item.status = 'Approved');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Approved ${item.itemType} for ${item.employeeName}'),
+      ),
+    );
+  }
+
+  void _showDetails(ApprovalItem item) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('${item.employeeName} · ${item.itemType}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(item.description, style: const TextStyle(height: 1.5)),
+            const SizedBox(height: 14),
+            Text('Status: ${item.status}'),
+            const SizedBox(height: 4),
+            Text('Due: ${item.dueDate}'),
+            const SizedBox(height: 4),
+            Text('Priority: ${item.priority}'),
+          ],
+        ),
+        actions: [
+          if (item.status != 'Approved')
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _approve(item);
+              },
+              child: const Text('Approve'),
+            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final pendingItems = [
-      ApprovalItem(
-        id: '001',
-        employeeName: 'Alex Morgan',
-        itemType: 'Equipment Setup',
-        status: 'Pending',
-        dueDate: 'Today',
-        priority: 'High',
-        description: 'Laptop, monitor, and keyboard allocation confirmed',
-      ),
-      ApprovalItem(
-        id: '002',
-        employeeName: 'Jamie Lee',
-        itemType: 'Security Clearance',
-        status: 'In Review',
-        dueDate: 'Tomorrow',
-        priority: 'High',
-        description: 'Background check and security badge approval',
-      ),
-      ApprovalItem(
-        id: '003',
-        employeeName: 'Taylor Smith',
-        itemType: 'Policy Acknowledgement',
-        status: 'Pending',
-        dueDate: '3 days',
-        priority: 'Medium',
-        description:
-            'Confirm receipt and understanding of all company policies',
-      ),
-      ApprovalItem(
-        id: '004',
-        employeeName: 'Casey Brown',
-        itemType: 'Manager Handoff',
-        status: 'Pending',
-        dueDate: '5 days',
-        priority: 'Medium',
-        description: 'Initial 1:1 meeting and team introduction session',
-      ),
-      ApprovalItem(
-        id: '005',
-        employeeName: 'Morgan Davis',
-        itemType: 'System Access',
-        status: 'Approved',
-        dueDate: 'Completed',
-        priority: 'Low',
-        description: 'All development and collaboration tools provisioned',
-      ),
-    ];
-
     final filtered = _selectedFilter == 'All'
-        ? pendingItems
-        : pendingItems.where((item) => item.status == _selectedFilter).toList();
+        ? _items
+        : _items.where((item) => item.status == _selectedFilter).toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -144,7 +188,13 @@ class _ApprovalWorkflowScreenState extends State<ApprovalWorkflowScreen> {
           ),
           const SizedBox(height: 24),
           // Approval items list
-          ...filtered.map((item) => _ApprovalItemCard(item: item)),
+          ...filtered.map(
+            (item) => _ApprovalItemCard(
+              item: item,
+              onApprove: () => _approve(item),
+              onDetails: () => _showDetails(item),
+            ),
+          ),
           if (filtered.isEmpty)
             Center(
               child: Padding(
@@ -202,8 +252,14 @@ class _QuickStatCard extends StatelessWidget {
 
 class _ApprovalItemCard extends StatelessWidget {
   final ApprovalItem item;
+  final VoidCallback onApprove;
+  final VoidCallback onDetails;
 
-  const _ApprovalItemCard({required this.item});
+  const _ApprovalItemCard({
+    required this.item,
+    required this.onApprove,
+    required this.onDetails,
+  });
 
   Color get _statusColor {
     switch (item.status) {
@@ -345,15 +401,19 @@ class _ApprovalItemCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: () {},
+                            onPressed: onDetails,
                             child: const Text('Details'),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () {},
-                            child: const Text('Approve'),
+                            onPressed: item.status == 'Approved'
+                                ? null
+                                : onApprove,
+                            child: Text(
+                              item.status == 'Approved' ? 'Approved' : 'Approve',
+                            ),
                           ),
                         ),
                       ],
@@ -407,13 +467,17 @@ class _ApprovalItemCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         OutlinedButton(
-                          onPressed: () {},
+                          onPressed: onDetails,
                           child: const Text('Details'),
                         ),
                         const SizedBox(width: 8),
                         ElevatedButton(
-                          onPressed: () {},
-                          child: const Text('Approve'),
+                          onPressed: item.status == 'Approved'
+                              ? null
+                              : onApprove,
+                          child: Text(
+                            item.status == 'Approved' ? 'Approved' : 'Approve',
+                          ),
                         ),
                       ],
                     ),
@@ -432,7 +496,7 @@ class ApprovalItem {
   final String id;
   final String employeeName;
   final String itemType;
-  final String status;
+  String status;
   final String dueDate;
   final String priority;
   final String description;

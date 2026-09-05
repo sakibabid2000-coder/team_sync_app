@@ -68,6 +68,7 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   int _selectedIndex = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<NavigationItem> _navigationItems = [
     NavigationItem(icon: Icons.dashboard, label: 'Dashboard', index: 0),
@@ -126,6 +127,20 @@ class _DashboardState extends State<Dashboard> {
     bool isWebView = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: !isWebView
+          ? Drawer(
+              width: 220,
+              child: Sidebar(
+                items: _navigationItems,
+                selectedIndex: _selectedIndex,
+                onItemSelected: (index) {
+                  setState(() => _selectedIndex = index);
+                  Navigator.of(context).pop();
+                },
+              ),
+            )
+          : null,
       body: Row(
         children: [
           // Sidebar for web view
@@ -158,7 +173,7 @@ class _DashboardState extends State<Dashboard> {
                         IconButton(
                           icon: const Icon(Icons.menu),
                           onPressed: () {
-                            // TODO: Show drawer on mobile
+                            _scaffoldKey.currentState?.openDrawer();
                           },
                         ),
                       Text(

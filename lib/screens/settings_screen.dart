@@ -166,7 +166,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       foregroundColor: const Color(0xFFEF4444),
                       side: const BorderSide(color: Color(0xFFEF4444)),
                     ),
-                    onPressed: () {},
+                    onPressed: _confirmResetSettings,
                     child: const Text('Reset All Settings to Default'),
                   ),
                 ),
@@ -174,6 +174,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  void _confirmResetSettings() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset all settings?'),
+        content: const Text(
+          'This will restore notifications, onboarding duration, and theme to their default values.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+            ),
+            onPressed: () {
+              setState(() {
+                _emailNotifications = true;
+                _slackNotifications = false;
+                _weeklyDigest = true;
+                _onboardingDuration = '30days';
+                _theme = 'light';
+              });
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Settings reset to default')),
+              );
+            },
+            child: const Text('Reset'),
+          ),
         ],
       ),
     );
