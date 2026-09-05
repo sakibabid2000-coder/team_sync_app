@@ -66,6 +66,21 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
     );
   }
 
+  void _editTemplate(TemplateData template) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => EditTemplateDialog(
+        template: template,
+        onTemplateUpdated: (updated) {
+          setState(() {
+            final index = templates.indexWhere((t) => t.id == updated.id);
+            if (index != -1) templates[index] = updated;
+          });
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -172,9 +187,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                     width: cardWidth,
                     child: TemplateCard(
                       template: template,
-                      onEdit: () {
-                        // TODO: Implement edit functionality
-                      },
+                      onEdit: () => _editTemplate(template),
                       onDelete: () {
                         setState(() {
                           templates.removeWhere((t) => t.id == template.id);
@@ -333,9 +346,7 @@ class TemplateCard extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Navigate to template details/edit page
-                },
+                onPressed: onEdit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6B46C1),
                   foregroundColor: Colors.white,
@@ -383,4 +394,139 @@ class TemplateData {
     required this.taskCount,
     required this.createdDate,
   });
+
+  TemplateData copyWith({String? name, String? department, String? description}) {
+    return TemplateData(
+      id: id,
+      name: name ?? this.name,
+      department: department ?? this.department,
+      description: description ?? this.description,
+      taskCount: taskCount,
+      createdDate: createdDate,
+    );
+  }
+}
+
+// Edit Template Dialog
+class EditTemplateDialog extends StatefulWidget {
+  final TemplateData template;
+  final Function(TemplateData) onTemplateUpdated;
+
+  const EditTemplateDialog({
+    super.key,
+    required this.template,
+    required this.onTemplateUpdated,
+  });
+
+  @override
+  State<EditTemplateDialog> createState() => _EditTemplateDialogState();
+}
+
+class _EditTemplateDialogState extends State<EditTemplateDialog> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _descriptionController;
+  late String _selectedDepartment;
+
+  final List<String> _departments = ['Engineering', 'Marketing', 'Sales', 'HR'];
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.template.name);
+    _descriptionController = TextEditingController(
+      text: widget.template.description,
+    );
+    _selectedDepartment = widget.template.department;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    if (_nameController.text.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Template name is required')));
+      return;
+    }
+
+    widget.onTemplateUpdated(
+      widget.template.copyWith(
+        name: _nameController.text,
+        department: _selectedDepartment,
+        description: _descriptionController.text,
+      ),
+    );
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Edit Template'),
+      content: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Template Name *',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              initialValue: _selectedDepartment,
+              decoration: InputDecoration(
+                labelText: 'Department',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              items: _departments
+                  .map((dept) => DropdownMenuItem(value: dept, child: Text(dept)))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) setState(() => _selectedDepartment = value);
+              },
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _descriptionController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _save,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF6B46C1),
+            foregroundColor: Colors.white,
+          ),
+          child: const Text('Save'),
+        ),
+      ],
+    );
+  }
 }

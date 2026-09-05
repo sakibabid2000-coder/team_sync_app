@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../services/activity_log_service.dart';
+
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
 
@@ -33,6 +35,10 @@ class ReportsScreen extends StatelessWidget {
     ];
 
     final activities = [
+      ...ActivityLogService.entries.map(
+        (entry) => ActivityItem(entry.description, entry.relativeTime),
+      ),
+      // Historical seed activity, shown below anything logged this session.
       ActivityItem('Alex Morgan completed payroll setup', '2 hours ago'),
       ActivityItem('Jamie Lee missed security review reminder', '5 hours ago'),
       ActivityItem('Taylor Smith passed compliance check', 'Yesterday'),

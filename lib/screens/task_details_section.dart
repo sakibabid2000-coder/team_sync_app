@@ -1,15 +1,134 @@
 import 'package:flutter/material.dart';
 
+import '../services/activity_log_service.dart';
 import 'dashboard_screen.dart';
 
-class TaskDetailsSection extends StatelessWidget {
+class TaskDetailsSection extends StatefulWidget {
   final EmployeeData? selectedEmployee;
 
   const TaskDetailsSection({super.key, this.selectedEmployee});
 
   @override
+  State<TaskDetailsSection> createState() => _TaskDetailsSectionState();
+}
+
+class _TaskDetailsSectionState extends State<TaskDetailsSection> {
+  final DateTime _now = DateTime.now();
+
+  late final List<TaskData> _tasks = [
+    TaskData(
+      title: 'Set up Slack Account',
+      dueDate: _now.subtract(const Duration(days: 6)),
+      isCompleted: true,
+      completedDate: 'Yesterday',
+    ),
+    TaskData(
+      title: 'Sign Employment Contract',
+      dueDate: _now.subtract(const Duration(days: 2)),
+      isCompleted: false,
+    ),
+    TaskData(
+      title: 'Complete IT Security Training',
+      dueDate: _now.add(const Duration(days: 3)),
+      isCompleted: false,
+    ),
+    TaskData(
+      title: 'Read Employee Handbook',
+      dueDate: _now.add(const Duration(days: 6)),
+      isCompleted: false,
+    ),
+  ];
+
+  Future<void> _markDone(TaskData task) async {
+    final noteController = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Mark "${task.title}" complete'),
+        content: TextField(
+          controller: noteController,
+          maxLines: 2,
+          decoration: const InputDecoration(
+            labelText: 'Note (optional)',
+            hintText: 'e.g., Laptop received, serial number: 123',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Mark Complete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() {
+        task.isCompleted = true;
+        task.completedDate = 'Today';
+        task.note = noteController.text.isEmpty ? null : noteController.text;
+      });
+      ActivityLogService.logTaskCompletion(
+        employeeName: widget.selectedEmployee!.name,
+        taskTitle: task.title,
+        note: task.note,
+      );
+    }
+  }
+
+  void _viewDetails(TaskData task) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(task.title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              task.isCompleted
+                  ? 'Completed on ${task.completedDate}'
+                  : 'Due: ${_formatTaskDate(task.dueDate)}',
+              style: TextStyle(
+                color: task.isOverdue ? Colors.red : null,
+                fontWeight: task.isOverdue ? FontWeight.w600 : null,
+              ),
+            ),
+            if (task.isOverdue) ...[
+              const SizedBox(height: 4),
+              const Text(
+                'Overdue',
+                style: TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ],
+            if (task.note != null) ...[
+              const SizedBox(height: 12),
+              Text('Note: ${task.note}'),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteTask(TaskData task) {
+    setState(() => _tasks.remove(task));
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (selectedEmployee == null) {
+    if (widget.selectedEmployee == null) {
       return const SizedBox.shrink();
     }
 
@@ -20,32 +139,7 @@ class TaskDetailsSection extends StatelessWidget {
         ? 250.0
         : (screenWidth - 64).clamp(220.0, 260.0);
 
-    final tasks = [
-      TaskData(
-        title: 'Set up Slack Account',
-        dueDate: 'May 02, 2024',
-        isCompleted: true,
-        completedDate: 'May 01, 2024',
-      ),
-      TaskData(
-        title: 'Sign Employment Contract',
-        dueDate: 'May 02, 2024',
-        isCompleted: false,
-        completedDate: null,
-      ),
-      TaskData(
-        title: 'Complete IT Security Training',
-        dueDate: 'May 03, 2024',
-        isCompleted: false,
-        completedDate: null,
-      ),
-      TaskData(
-        title: 'Read Employee Handbook',
-        dueDate: 'May 04, 2024',
-        isCompleted: false,
-        completedDate: null,
-      ),
-    ];
+    final tasks = _tasks;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -61,7 +155,7 @@ class TaskDetailsSection extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Tasks for ${selectedEmployee!.name}',
+                  'Tasks for ${widget.selectedEmployee!.name}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleMedium
@@ -98,7 +192,10 @@ class TaskDetailsSection extends StatelessWidget {
                     width: cardWidth,
                     child: TaskCard(
                       task: task,
-                      employeeName: selectedEmployee!.name,
+                      employeeName: widget.selectedEmployee!.name,
+                      onMarkDone: () => _markDone(task),
+                      onViewDetails: () => _viewDetails(task),
+                      onDelete: () => _deleteTask(task),
                     ),
                   ),
                 )
@@ -114,8 +211,18 @@ class TaskDetailsSection extends StatelessWidget {
 class TaskCard extends StatelessWidget {
   final TaskData task;
   final String employeeName;
+  final VoidCallback onMarkDone;
+  final VoidCallback onViewDetails;
+  final VoidCallback onDelete;
 
-  const TaskCard({super.key, required this.task, required this.employeeName});
+  const TaskCard({
+    super.key,
+    required this.task,
+    required this.employeeName,
+    required this.onMarkDone,
+    required this.onViewDetails,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -173,11 +280,16 @@ class TaskCard extends StatelessWidget {
                     Text(
                       task.isCompleted
                           ? 'Completed on ${task.completedDate}'
-                          : 'Due: ${task.dueDate}',
+                          : task.isOverdue
+                          ? 'Overdue — was due ${_formatTaskDate(task.dueDate)}'
+                          : 'Due: ${_formatTaskDate(task.dueDate)}',
                       style: TextStyle(
                         fontSize: 12,
+                        fontWeight: task.isOverdue ? FontWeight.w700 : null,
                         color: task.isCompleted
                             ? Colors.green
+                            : task.isOverdue
+                            ? Colors.red
                             : Colors.grey[500],
                       ),
                     ),
@@ -198,7 +310,7 @@ class TaskCard extends StatelessWidget {
                       side: const BorderSide(color: Color(0xFF6B46C1)),
                       padding: const EdgeInsets.symmetric(vertical: 8),
                     ),
-                    onPressed: () {},
+                    onPressed: onMarkDone,
                     child: const Text(
                       'Mark Done',
                       style: TextStyle(fontSize: 12),
@@ -213,7 +325,7 @@ class TaskCard extends StatelessWidget {
                       side: const BorderSide(color: Colors.grey),
                       padding: const EdgeInsets.symmetric(vertical: 8),
                     ),
-                    onPressed: () {},
+                    onPressed: onViewDetails,
                     child: const Text(
                       'View Details',
                       style: TextStyle(fontSize: 12),
@@ -226,15 +338,19 @@ class TaskCard extends StatelessWidget {
                   border: Border.all(color: Colors.grey[300]!),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: IconButton(
+                child: PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert, size: 18),
-                  onPressed: () {},
-                  iconSize: 20,
-                  constraints: const BoxConstraints(
-                    minWidth: 40,
-                    minHeight: 40,
-                  ),
-                  padding: EdgeInsets.zero,
+                  onSelected: (value) {
+                    if (value == 'details') {
+                      onViewDetails();
+                    } else if (value == 'delete') {
+                      onDelete();
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(value: 'details', child: Text('View Details')),
+                    PopupMenuItem(value: 'delete', child: Text('Remove Task')),
+                  ],
                 ),
               ),
             ],
@@ -248,14 +364,37 @@ class TaskCard extends StatelessWidget {
 // Task Data Model
 class TaskData {
   final String title;
-  final String dueDate;
-  final bool isCompleted;
-  final String? completedDate;
+  final DateTime dueDate;
+  bool isCompleted;
+  String? completedDate;
+  String? note;
 
   TaskData({
     required this.title,
     required this.dueDate,
     required this.isCompleted,
     this.completedDate,
+    this.note,
   });
+
+  bool get isOverdue => !isCompleted && DateTime.now().isAfter(dueDate);
+}
+
+const _monthNames = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+String _formatTaskDate(DateTime date) {
+  return '${_monthNames[date.month - 1]} ${date.day.toString().padLeft(2, '0')}, ${date.year}';
 }

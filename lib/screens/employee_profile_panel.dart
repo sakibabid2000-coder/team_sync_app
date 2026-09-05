@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 
+import '../services/activity_log_service.dart';
 import 'dashboard_screen.dart';
 
-class EmployeeProfilePanel extends StatelessWidget {
+class EmployeeProfilePanel extends StatefulWidget {
   final EmployeeData employee;
   final VoidCallback onClose;
 
@@ -11,6 +13,34 @@ class EmployeeProfilePanel extends StatelessWidget {
     required this.employee,
     required this.onClose,
   });
+
+  @override
+  State<EmployeeProfilePanel> createState() => _EmployeeProfilePanelState();
+}
+
+class _EmployeeProfilePanelState extends State<EmployeeProfilePanel> {
+  final DateTime _now = DateTime.now();
+
+  late final List<_PanelTask> _todaysTasks = [
+    _PanelTask(
+      'Sign Employment Contract',
+      _now.subtract(const Duration(days: 4)),
+      true,
+    ),
+    _PanelTask('Set up Slack Account', _now.add(const Duration(days: 1)), false),
+    _PanelTask(
+      'Complete IT Security Training',
+      _now.subtract(const Duration(days: 1)),
+      false,
+    ),
+  ];
+
+  late final List<_PanelTask> _upcomingTasks = [
+    _PanelTask('Submit Tax Information', _now.add(const Duration(days: 4)), false),
+    _PanelTask('Read Employee Handbook', _now.add(const Duration(days: 3)), false),
+  ];
+
+  EmployeeData get employee => widget.employee;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +77,7 @@ class EmployeeProfilePanel extends StatelessWidget {
                     ),
                     IconButton(
                       icon: const Icon(Icons.close),
-                      onPressed: onClose,
+                      onPressed: widget.onClose,
                       iconSize: 20,
                     ),
                   ],
@@ -128,7 +158,7 @@ class EmployeeProfilePanel extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          '8 of 10 tasks completed',
+                          '${_todaysTasks.where((t) => t.isCompleted).length + _upcomingTasks.where((t) => t.isCompleted).length} of ${_todaysTasks.length + _upcomingTasks.length} tasks completed',
                           style: TextStyle(
                             color: Colors.grey[500],
                             fontSize: 12,
@@ -137,43 +167,49 @@ class EmployeeProfilePanel extends StatelessWidget {
                       ]),
                       const SizedBox(height: 20),
                       _buildSection('Today\'s Tasks', [
-                        _buildTaskItem(
-                          'Sign Employment Contract',
-                          'Due: May 02, 2024',
-                          true,
-                          context,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildTaskItem(
-                          'Set up Slack Account',
-                          'Due: May 02, 2024',
-                          false,
-                          context,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildTaskItem(
-                          'Complete IT Security Training',
-                          'Due: May 03, 2024',
-                          false,
-                          context,
-                        ),
+                        for (int i = 0; i < _todaysTasks.length; i++) ...[
+                          if (i > 0) const SizedBox(height: 12),
+                          _buildTaskItem(_todaysTasks[i], (value) {
+                            final completed = value ?? false;
+                            setState(
+                              () => _todaysTasks[i].isCompleted = completed,
+                            );
+                            if (completed) {
+                              ActivityLogService.logTaskCompletion(
+                                employeeName: employee.name,
+                                taskTitle: _todaysTasks[i].title,
+                              );
+                            }
+                          }),
+                        ],
                       ]),
                       const SizedBox(height: 20),
                       _buildSection('Upcoming Tasks', [
-                        _buildTaskItem(
-                          'Submit Tax Information',
-                          'Due: May 05, 2024',
-                          false,
-                          context,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildTaskItem(
-                          'Read Employee Handbook',
-                          'Due: May 04, 2024',
-                          false,
-                          context,
-                        ),
+                        for (int i = 0; i < _upcomingTasks.length; i++) ...[
+                          if (i > 0) const SizedBox(height: 12),
+                          _buildTaskItem(_upcomingTasks[i], (value) {
+                            final completed = value ?? false;
+                            setState(
+                              () => _upcomingTasks[i].isCompleted = completed,
+                            );
+                            if (completed) {
+                              ActivityLogService.logTaskCompletion(
+                                employeeName: employee.name,
+                                taskTitle: _upcomingTasks[i].title,
+                              );
+                            }
+                          }),
+                        ],
                       ]),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _exportCompletionReport,
+                          icon: const Icon(Icons.description_outlined, size: 18),
+                          label: const Text('Export Completion Report'),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -182,6 +218,84 @@ class EmployeeProfilePanel extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  void _exportCompletionReport() {
+    final completedTasks = [
+      ..._todaysTasks,
+      ..._upcomingTasks,
+    ].where((task) => task.isCompleted).toList();
+
+    final rows = completedTasks.isEmpty
+        ? '<tr><td colspan="2">No tasks completed yet</td></tr>'
+        : completedTasks
+              .map(
+                (task) =>
+                    '<tr><td>${task.title}</td><td>${_formatTaskDate(task.dueDate)}</td></tr>',
+              )
+              .join('\n');
+
+    final html =
+        '''
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Onboarding Completion Report - ${employee.name}</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 32px; color: #1F2937; }
+  h1 { color: #6B46C1; margin-bottom: 4px; }
+  .meta { color: #6B7280; margin-bottom: 24px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border: 1px solid #E5E7EB; padding: 8px 12px; text-align: left; }
+  th { background: #F9FAFB; }
+</style>
+</head>
+<body>
+  <h1>Onboarding Completion Report</h1>
+  <p class="meta">
+    <strong>${employee.name}</strong> &middot; ${employee.department}<br>
+    Progress: ${employee.progress}% &middot; Generated ${_formatTaskDate(DateTime.now())}
+  </p>
+  <table>
+    <tr><th>Completed Task</th><th>Due Date</th></tr>
+    $rows
+  </table>
+</body>
+</html>
+''';
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Completion Report (HTML)'),
+        content: SizedBox(
+          width: 480,
+          height: 360,
+          child: SingleChildScrollView(
+            child: SelectableText(
+              html,
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: html));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('HTML copied to clipboard')),
+              );
+            },
+            child: const Text('Copy HTML'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -203,12 +317,7 @@ class EmployeeProfilePanel extends StatelessWidget {
     );
   }
 
-  Widget _buildTaskItem(
-    String title,
-    String dueDate,
-    bool isCompleted,
-    BuildContext context,
-  ) {
+  Widget _buildTaskItem(_PanelTask task, ValueChanged<bool?> onChanged) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -220,8 +329,8 @@ class EmployeeProfilePanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Checkbox(
-            value: isCompleted,
-            onChanged: (value) {},
+            value: task.isCompleted,
+            onChanged: onChanged,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),
             ),
@@ -232,21 +341,27 @@ class EmployeeProfilePanel extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  task.title,
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
-                    color: isCompleted
+                    color: task.isCompleted
                         ? Colors.grey[500]
                         : const Color(0xFF1F2937),
-                    decoration: isCompleted
+                    decoration: task.isCompleted
                         ? TextDecoration.lineThrough
                         : TextDecoration.none,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  dueDate,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  task.isOverdue
+                      ? 'Overdue — was due ${_formatTaskDate(task.dueDate)}'
+                      : 'Due: ${_formatTaskDate(task.dueDate)}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: task.isOverdue ? FontWeight.w600 : null,
+                    color: task.isOverdue ? Colors.red : Colors.grey[500],
+                  ),
                 ),
               ],
             ),
@@ -255,4 +370,33 @@ class EmployeeProfilePanel extends StatelessWidget {
       ),
     );
   }
+}
+
+class _PanelTask {
+  final String title;
+  final DateTime dueDate;
+  bool isCompleted;
+
+  _PanelTask(this.title, this.dueDate, this.isCompleted);
+
+  bool get isOverdue => !isCompleted && DateTime.now().isAfter(dueDate);
+}
+
+const _monthNames = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+String _formatTaskDate(DateTime date) {
+  return '${_monthNames[date.month - 1]} ${date.day.toString().padLeft(2, '0')}, ${date.year}';
 }
