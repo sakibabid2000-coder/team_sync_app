@@ -115,6 +115,15 @@ class _ApprovalWorkflowScreenState extends State<ApprovalWorkflowScreen> {
         ? _items
         : _items.where((item) => item.status == _selectedFilter).toList();
 
+    final pendingCount = _items.where((i) => i.status == 'Pending').length;
+    final inReviewCount = _items.where((i) => i.status == 'In Review').length;
+    final approvedCount = _items.where((i) => i.status == 'Approved').length;
+    // Items that are High priority and not yet resolved are the ones that
+    // actually need someone's attention right now.
+    final needsActionCount = _items
+        .where((i) => i.status != 'Approved' && i.priority == 'High')
+        .length;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -146,7 +155,7 @@ class _ApprovalWorkflowScreenState extends State<ApprovalWorkflowScreen> {
                     width: cardWidth.clamp(140.0, 220.0),
                     child: _QuickStatCard(
                       label: 'Pending',
-                      value: '08',
+                      value: pendingCount.toString().padLeft(2, '0'),
                       color: const Color(0xFFF59E0B),
                     ),
                   ),
@@ -154,7 +163,7 @@ class _ApprovalWorkflowScreenState extends State<ApprovalWorkflowScreen> {
                     width: cardWidth.clamp(140.0, 220.0),
                     child: _QuickStatCard(
                       label: 'In Review',
-                      value: '03',
+                      value: inReviewCount.toString().padLeft(2, '0'),
                       color: const Color(0xFF3B82F6),
                     ),
                   ),
@@ -162,7 +171,7 @@ class _ApprovalWorkflowScreenState extends State<ApprovalWorkflowScreen> {
                     width: cardWidth.clamp(140.0, 220.0),
                     child: _QuickStatCard(
                       label: 'Approved',
-                      value: '12',
+                      value: approvedCount.toString().padLeft(2, '0'),
                       color: const Color(0xFF10B981),
                     ),
                   ),
@@ -170,7 +179,7 @@ class _ApprovalWorkflowScreenState extends State<ApprovalWorkflowScreen> {
                     width: cardWidth.clamp(140.0, 220.0),
                     child: _QuickStatCard(
                       label: 'Needs Action',
-                      value: '02',
+                      value: needsActionCount.toString().padLeft(2, '0'),
                       color: const Color(0xFFEF4444),
                     ),
                   ),
