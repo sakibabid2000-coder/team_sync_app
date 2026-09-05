@@ -135,6 +135,7 @@ class _DashboardState extends State<Dashboard> {
       key: _scaffoldKey,
       drawer: !isWebView
           ? Drawer(
+              width: 220,
               child: Sidebar(
                 items: _navigationItems,
                 selectedIndex: _selectedIndex,

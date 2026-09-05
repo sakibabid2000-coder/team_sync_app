@@ -89,6 +89,65 @@ class _AnnouncementCard extends StatelessWidget {
     }
   }
 
+  void _showDetails(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(item.title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _priorityColor.withAlpha(26),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '${item.priority} priority',
+                    style: TextStyle(
+                      color: _priorityColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              item.date,
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Audience: ${item.audience}',
+              style: const TextStyle(
+                color: Color(0xFF6B46C1),
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(item.summary, style: const TextStyle(height: 1.5)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -157,7 +216,7 @@ class _AnnouncementCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () => _showDetails(context),
               child: const Text('Open details'),
             ),
           ),
