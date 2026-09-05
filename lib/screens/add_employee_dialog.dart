@@ -40,7 +40,9 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
   @override
   void initState() {
     super.initState();
-    _selectedDepartment = widget.departments.first;
+    _selectedDepartment = widget.departments.isNotEmpty
+        ? widget.departments.first
+        : 'General';
   }
 
   @override
@@ -77,6 +79,8 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
       return;
     }
 
+    final avatarChar = name.isNotEmpty ? name[0].toUpperCase() : '?';
+
     final employee = EmployeeDirectoryItem(
       name: name,
       role: role,
@@ -85,7 +89,7 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
       progress: 0,
       status: 'In Progress',
       dueToday: 0,
-      avatar: name[0].toUpperCase(),
+      avatar: avatarChar,
     );
 
     widget.onEmployeeCreated(employee);
@@ -98,66 +102,71 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
       title: const Text('Add Employee'),
       content: SizedBox(
         width: 400,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Full Name *',
-                hintText: 'e.g., Morgan Reyes',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _roleController,
-              decoration: InputDecoration(
-                labelText: 'Job Title *',
-                hintText: 'e.g., Software Engineer',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              initialValue: _selectedDepartment,
-              decoration: InputDecoration(
-                labelText: 'Department *',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              items: widget.departments
-                  .map(
-                    (dept) => DropdownMenuItem(value: dept, child: Text(dept)),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _selectedDepartment = value);
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-            InkWell(
-              onTap: _pickHireDate,
-              child: InputDecorator(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'Hire Date *',
+                  labelText: 'Full Name *',
+                  hintText: 'e.g., Morgan Reyes',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  suffixIcon: const Icon(Icons.calendar_today, size: 18),
                 ),
-                child: Text(_formatDate(_hireDate)),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextField(
+                controller: _roleController,
+                decoration: InputDecoration(
+                  labelText: 'Job Title *',
+                  hintText: 'e.g., Software Engineer',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _selectedDepartment,
+                decoration: InputDecoration(
+                  labelText: 'Department *',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                items: widget.departments
+                    .map(
+                      (dept) => DropdownMenuItem(
+                        value: dept,
+                        child: Text(dept),
+                      )
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _selectedDepartment = value);
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: _pickHireDate,
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: 'Hire Date *',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    suffixIcon: const Icon(Icons.calendar_today, size: 18),
+                  ),
+                  child: Text(_formatDate(_hireDate)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       actions: [
