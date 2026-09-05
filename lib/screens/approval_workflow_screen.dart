@@ -3,6 +3,12 @@ import 'package:flutter/material.dart';
 class ApprovalWorkflowScreen extends StatefulWidget {
   const ApprovalWorkflowScreen({super.key});
 
+  /// Read-only view of the approval queue, for other screens (e.g. Reports)
+  /// to compute real metrics from. This list is `static` so it also
+  /// survives navigating away from and back to this screen.
+  static List<ApprovalItem> get allItems =>
+      List.unmodifiable(_ApprovalWorkflowScreenState._items);
+
   @override
   State<ApprovalWorkflowScreen> createState() => _ApprovalWorkflowScreenState();
 }
@@ -10,7 +16,7 @@ class ApprovalWorkflowScreen extends StatefulWidget {
 class _ApprovalWorkflowScreenState extends State<ApprovalWorkflowScreen> {
   String _selectedFilter = 'All';
 
-  final List<ApprovalItem> _items = [
+  static final List<ApprovalItem> _items = [
     ApprovalItem(
       id: '001',
       employeeName: 'Alex Morgan',

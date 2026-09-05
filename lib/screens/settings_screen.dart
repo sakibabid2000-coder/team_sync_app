@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -8,14 +9,55 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  static const _keyEmailNotifications = 'settings_email_notifications';
+  static const _keySlackNotifications = 'settings_slack_notifications';
+  static const _keyWeeklyDigest = 'settings_weekly_digest';
+  static const _keyOnboardingDuration = 'settings_onboarding_duration';
+  static const _keyTheme = 'settings_theme';
+
   bool _emailNotifications = true;
   bool _slackNotifications = false;
   bool _weeklyDigest = true;
   String _onboardingDuration = '30days';
   String _theme = 'light';
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _emailNotifications =
+          prefs.getBool(_keyEmailNotifications) ?? _emailNotifications;
+      _slackNotifications =
+          prefs.getBool(_keySlackNotifications) ?? _slackNotifications;
+      _weeklyDigest = prefs.getBool(_keyWeeklyDigest) ?? _weeklyDigest;
+      _onboardingDuration =
+          prefs.getString(_keyOnboardingDuration) ?? _onboardingDuration;
+      _theme = prefs.getString(_keyTheme) ?? _theme;
+      _loaded = true;
+    });
+  }
+
+  Future<void> _saveSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyEmailNotifications, _emailNotifications);
+    await prefs.setBool(_keySlackNotifications, _slackNotifications);
+    await prefs.setBool(_keyWeeklyDigest, _weeklyDigest);
+    await prefs.setString(_keyOnboardingDuration, _onboardingDuration);
+    await prefs.setString(_keyTheme, _theme);
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (!_loaded) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -59,6 +101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _emailNotifications,
               onChanged: (value) {
                 setState(() => _emailNotifications = value);
+                _saveSettings();
               },
             ),
             _buildToggleSetting(
@@ -67,6 +110,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _slackNotifications,
               onChanged: (value) {
                 setState(() => _slackNotifications = value);
+                _saveSettings();
               },
             ),
             _buildToggleSetting(
@@ -75,6 +119,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _weeklyDigest,
               onChanged: (value) {
                 setState(() => _weeklyDigest = value);
+                _saveSettings();
               },
             ),
           ]),
@@ -93,6 +138,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onChanged: (value) {
                 if (value != null) {
                   setState(() => _onboardingDuration = value);
+                  _saveSettings();
                 }
               },
             ),
@@ -134,6 +180,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onChanged: (value) {
                 if (value != null) {
                   setState(() => _theme = value);
+                  _saveSettings();
                 }
               },
             ),
@@ -204,6 +251,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _onboardingDuration = '30days';
                 _theme = 'light';
               });
+              _saveSettings();
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Settings reset to default')),
