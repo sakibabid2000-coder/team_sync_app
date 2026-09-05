@@ -66,14 +66,133 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
     );
   }
 
+  // ===========================================================================
+  // Brinto's Contribution: Template Management Modal Dialog
+  // Handles editing template titles and descriptions with live state updates.
+  // ===========================================================================
+  void _editTemplate(TemplateData template) {
+    final nameController = TextEditingController(text: template.name);
+    final descriptionController = TextEditingController(text: template.description);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Edit Template — ${template.department}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Template Name'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: descriptionController,
+              decoration: const InputDecoration(labelText: 'Description'),
+              maxLines: 2,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                final idx = templates.indexWhere((t) => t.id == template.id);
+                if (idx != -1) {
+                  templates[idx] = TemplateData(
+                    id: template.id,
+                    name: nameController.text,
+                    department: template.department,
+                    description: descriptionController.text,
+                    taskCount: template.taskCount,
+                    createdDate: template.createdDate,
+                  );
+                }
+              });
+              Navigator.pop(ctx);
+            },
+            child: const Text('Save Changes'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ===========================================================================
+  // Brinto's Contribution: Template Task Management Viewer
+  // Displays structured onboarding task workflows assigned to a template.
+  // ===========================================================================
+  void _manageTemplateTasks(TemplateData template) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => Container(
+        height: MediaQuery.of(ctx).size.height * 0.65,
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    '${template.name} (${template.taskCount} Tasks)',
+                    style: Theme.of(ctx).textTheme.headlineSmall,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              template.description,
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+            const Divider(height: 32),
+            Expanded(
+              child: ListView.builder(
+                itemCount: template.taskCount,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: const Color(0xFFEAE6F8),
+                      child: Text(
+                        '${index + 1}',
+                        style: const TextStyle(color: Color(0xFF6B46C1), fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    title: Text('Standard Onboarding Task #${index + 1}'),
+                    subtitle: Text('Default required action step for ${template.department} team new hires.'),
+                    trailing: const Icon(Icons.drag_handle, color: Colors.grey),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final cardWidth = screenWidth > 1200
         ? 350.0
         : screenWidth > 800
-        ? 300.0
-        : double.infinity;
+            ? 300.0
+            : double.infinity;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -91,7 +210,9 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                   children: [
                     Text(
                       'Onboarding Templates',
-                      style: Theme.of(context).textTheme.headlineSmall
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
@@ -129,7 +250,9 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                       children: [
                         Text(
                           'Onboarding Templates',
-                          style: Theme.of(context).textTheme.headlineSmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 4),
@@ -172,14 +295,19 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                     width: cardWidth,
                     child: TemplateCard(
                       template: template,
-                      onEdit: () {
-                        // TODO: Implement edit functionality
-                      },
+                      // =======================================================
+                      // Brinto's Contribution: Implemented edit popup handler
+                      // =======================================================
+                      onEdit: () => _editTemplate(template),
                       onDelete: () {
                         setState(() {
                           templates.removeWhere((t) => t.id == template.id);
                         });
                       },
+                      // =======================================================
+                      // Brinto's Contribution: Implemented manage template navigation
+                      // =======================================================
+                      onManage: () => _manageTemplateTasks(template),
                     ),
                   ),
                 )
@@ -196,12 +324,14 @@ class TemplateCard extends StatelessWidget {
   final TemplateData template;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onManage; // Brinto's Contribution: Manage Callback
 
   const TemplateCard({
     super.key,
     required this.template,
     required this.onEdit,
     required this.onDelete,
+    required this.onManage,
   });
 
   @override
@@ -333,9 +463,10 @@ class TemplateCard extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Navigate to template details/edit page
-                },
+                // =============================================================
+                // Brinto's Contribution: Invokes task workflow management modal
+                // =============================================================
+                onPressed: onManage,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6B46C1),
                   foregroundColor: Colors.white,
