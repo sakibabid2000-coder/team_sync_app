@@ -7,12 +7,10 @@ employee up to speed.
 ## Tech stack
 
 - **Framework:** Flutter (Dart), single codebase targeting web/desktop/mobile
-- **State management:** Built-in `StatefulWidget` / `setState` only — no
-  Provider, Riverpod, Bloc, etc.
+- **State management:** Built-in `StatefulWidget` / `setState` only 
 - **Data:** Everything is in-memory (`List`/`Map` literals seeded at
-  startup). **Nothing persists** — a page refresh or app restart resets
-  all data back to the seed values.
-- **Backend:** None. No HTTP client, no database, no auth. This is a
+  startup).
+- **Backend:** No HTTP client, This is a
   frontend-only prototype.
 
 ## Screens
