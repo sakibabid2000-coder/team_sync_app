@@ -21,7 +21,7 @@ employee up to speed.
 |---|---|
 | Dashboard | Stat cards, onboarding pipeline, manager action center, employee table with search/nudge |
 | Employees | Employee directory, filter by status, add new employee, edit job title/department |
-| Tasks | Static kanban-style board (Due today / In progress / Needs attention / Completed) |
+| Tasks | Interactive kanban-style board (Due today / In progress / Needs attention / Completed) |
 | Templates | Create/edit/delete onboarding templates, each with its own task checklist |
 | Approvals | Approval queue for onboarding items (equipment, clearance, policy sign-off, etc.) |
 | Journey | Per-employee onboarding timeline across pre-boarding → week 2 |
@@ -48,6 +48,9 @@ something, not just decoration:
   - "Mark Done" on a task prompts for a completion note, then marks it complete (Phase 3: Note Submission)
   - "View Details" / "Remove Task" via an overflow menu
   - Task checkboxes in the employee side panel toggle completion
+  - Task Center kanban board: each card can move to any other column via a
+    "Move to..." menu, columns show live counts, "+" adds a task to a
+    column, and moving a card to Completed logs it to the Activity Log
 - **Dashboard**
   - Employee table search filters by name
   - **Nudge** logs a reminder (confirmation toast) for a slow employee (Phase 4)
@@ -59,16 +62,13 @@ something, not just decoration:
 - **Integrations** — Connect / Disconnect / Manage / Learn more all update real state
 - **Settings** — notification toggles, onboarding duration, theme, and a confirmed "Reset All Settings to Default"
 - **Announcements** — "Open details" shows the full announcement in a dialog
-
-## What's not implemented yet
-
-From the approved project proposal, still outstanding:
-
-- **Activity Logs** — a history log of exactly when an employee checked off each task (Phase 5)
-- **Filter by Department** — managers filtering the dashboard/employee list down to one department, e.g. "Marketing only" (Phase 5)
-- **Export Completion Report** — a printable HTML view of an employee's completed onboarding file (Phase 5)
-- **Archive Employee** — moving an employee to an "Onboarded" status to clean up the active dashboard pool (Phase 5)
-- **Overdue indicators on individual tasks** — task rows should switch to red text once their due date has passed; currently only the aggregate "overdue tasks" count is colored (Phase 4)
+- **Activity Logs** — a shared log records task completions and manager nudges; the Reports screen's activity feed shows these live, ahead of historical seed entries (Phase 5)
+- **Filter by Department** — the dashboard's employee table has department filter chips alongside the name search (Phase 5)
+- **Overdue indicators** — incomplete tasks past their due date render in red with an "Overdue" label, both on the dashboard and in the employee profile panel (Phase 4)
+- **Export Completion Report** — the employee profile panel can generate an HTML onboarding report (employee info + completed tasks) with a "Copy HTML" action (Phase 5)
+- **Archive Employee** — employees can be archived to an "Onboarded" status via a per-card menu, hidden from the default view, and restored again (Phase 5)
+- **Persistence (Templates + Settings)** — these two screens save to local storage via `shared_preferences` and reload on startup, so they're the only parts of the app that survive a refresh/restart. Everything else is still in-memory only (see Known limitations).
+- **Reports metric cards** — Completion rate, Pending approvals, Nudge activity, and At-risk hires are all computed live from the Employees, Approvals, and Activity Log data (no more hardcoded numbers). Making this possible: the Employees and Approvals screens' lists are now `static`, so they're shared with Reports and also survive navigating away and back (previously they silently reset to the seed data every time you left and returned to those screens, since `main.dart` swaps screens by disposing/recreating them rather than keeping them alive).
 
 Beyond the proposal's scope (built as extra functionality, not required by
 Phase 1–5, but present in the app and kept working):
@@ -79,29 +79,39 @@ Phase 1–5, but present in the app and kept working):
 
 ## Known limitations
 
-- **No persistence.** Everything resets on refresh/restart — there is no
-  database, local storage, or backend API.
+- **Persistence is partial.** Only Templates and Settings save to local
+  storage (`shared_preferences`) and survive a refresh/restart. Every
+  other screen (Employees, Tasks, Approvals, Journey, Integrations,
+  Activity Log) is still in-memory only and resets on reload — there is
+  no database or backend API anywhere in the app.
 - **No authentication.** The signed-in "Sarah Johnson / HR Manager" in the
   sidebar is a hardcoded placeholder, not a real logged-in user.
 - **No real integrations.** The Integration Hub's Slack/Google/Teams/etc.
   connections are simulated locally; nothing actually calls those
   services.
-- **Tasks/Reports screens are still static** — the Tasks kanban board and
-  Reports dashboard show fixed mock data with no interactivity.
+- **Approval Workflow's own quick-stat cards are still static** — the
+  "Pending / In Review / Approved / Needs Action" cards at the top of
+  that screen are fixed mock numbers (unlike Reports' metric cards,
+  which are now real).
 
 ## What can be done next
 
-1. Finish the remaining Phase 4/5 items above (Activity Logs, Filter by
-   Department, Export Completion Report, Archive Employee, per-task
-   overdue indicators).
-2. Add a real data layer (e.g. a repository/service abstraction) so
+All Phase 1–5 proposal items are now implemented. Remaining ideas:
+
+1. Add a real data layer (e.g. a repository/service abstraction) so
    screens aren't each holding their own disconnected copies of mock
    data — today, for example, "Alex Morgan" exists as separate,
    independently-editable records in the Dashboard, Employees, and Task
    Details screens.
-3. Add persistence (local: `shared_preferences`/`sqflite`; or a real
-   backend) so onboarding progress survives a restart.
-4. Add authentication and role-based access (Admin/HR vs. Manager vs.
+2. Extend persistence to the rest of the app (Employees, Tasks,
+   Approvals, Activity Log, etc.) — the `shared_preferences` pattern
+   used for Templates/Settings works the same way elsewhere, but each
+   domain should go through the data-layer unification above first
+   rather than persisting today's fragmented per-screen copies as-is.
+3. Add authentication and role-based access (Admin/HR vs. Manager vs.
    New Hire), per the proposal's Phase 1 user roles.
-5. Wire the Tasks and Reports screens up to the same underlying data
-   model as the rest of the app instead of static mock content.
+4. Wire the Approval Workflow screen's own quick-stat cards up to real
+   data the same way Reports' metric cards now are.
+5. Actually render/print the Export Completion Report's HTML (e.g. via
+   a WebView or by writing it to a file) instead of only showing/
+   copying the raw markup.

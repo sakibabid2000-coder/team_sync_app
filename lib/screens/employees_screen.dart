@@ -5,6 +5,12 @@ import 'add_employee_dialog.dart';
 class EmployeesScreen extends StatefulWidget {
   const EmployeesScreen({super.key});
 
+  /// Read-only view of the employee directory, for other screens (e.g.
+  /// Reports) to compute real metrics from. This list is `static` so it
+  /// also survives navigating away from and back to this screen.
+  static List<EmployeeDirectoryItem> get allEmployees =>
+      List.unmodifiable(_EmployeesScreenState._employees);
+
   @override
   State<EmployeesScreen> createState() => _EmployeesScreenState();
 }
@@ -12,7 +18,7 @@ class EmployeesScreen extends StatefulWidget {
 class _EmployeesScreenState extends State<EmployeesScreen> {
   static const _departments = ['Engineering', 'Marketing', 'Sales', 'HR'];
 
-  final List<EmployeeDirectoryItem> _employees = [
+  static final List<EmployeeDirectoryItem> _employees = [
     EmployeeDirectoryItem(
       name: 'Alex Morgan',
       role: 'Senior Frontend Engineer',

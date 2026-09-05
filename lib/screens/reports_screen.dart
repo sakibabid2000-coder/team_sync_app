@@ -1,35 +1,61 @@
 import 'package:flutter/material.dart';
 
 import '../services/activity_log_service.dart';
+import 'approval_workflow_screen.dart';
+import 'employees_screen.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Archived ("Onboarded") employees are excluded from the active pool,
+    // matching how the Employees screen's "All" filter treats them.
+    final activeEmployees = EmployeesScreen.allEmployees
+        .where((e) => e.status != 'Onboarded')
+        .toList();
+    final atRiskCount = activeEmployees
+        .where((e) => e.status == 'At Risk')
+        .length;
+    final averageProgress = activeEmployees.isEmpty
+        ? 0
+        : (activeEmployees.map((e) => e.progress).reduce((a, b) => a + b) /
+                  activeEmployees.length)
+              .round();
+
+    final approvals = ApprovalWorkflowScreen.allItems;
+    final pendingCount = approvals.where((a) => a.status == 'Pending').length;
+    final inReviewCount = approvals
+        .where((a) => a.status == 'In Review')
+        .length;
+
+    final nudgeCount = ActivityLogService.entries
+        .where((e) => e.description.startsWith('Nudged '))
+        .length;
+
     final metrics = [
       MetricCardData(
         title: 'Completion rate',
-        value: '78%',
-        delta: '+8% vs last month',
+        value: '$averageProgress%',
+        delta: 'Average across ${activeEmployees.length} active employees',
         color: const Color(0xFF10B981),
       ),
       MetricCardData(
         title: 'Pending approvals',
-        value: '14',
-        delta: '4 need action today',
+        value: '$pendingCount',
+        delta: '$inReviewCount in review',
         color: const Color(0xFFF59E0B),
       ),
       MetricCardData(
         title: 'Nudge activity',
-        value: '27',
-        delta: '5 above target',
+        value: '$nudgeCount',
+        delta: nudgeCount == 0 ? 'None logged yet' : 'Logged this session',
         color: const Color(0xFF3B82F6),
       ),
       MetricCardData(
         title: 'At-risk hires',
-        value: '05',
-        delta: '2 in critical path',
+        value: '$atRiskCount',
+        delta: 'out of ${activeEmployees.length} active hires',
         color: const Color(0xFFEF4444),
       ),
     ];
