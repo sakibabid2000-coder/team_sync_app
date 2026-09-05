@@ -10,7 +10,7 @@ employee up to speed.
 - **State management:** Built-in `StatefulWidget` / `setState` only — no
   Provider, Riverpod, Bloc, etc.
 - **Data:** Everything is in-memory (`List`/`Map` literals seeded at
-  startup). **Nothing persists** — a page refresh or app restart resets
+  startup). Has no persistence yet, a page refresh or app restart resets
   all data back to the seed values.
 - **Backend:** None. No HTTP client, no database, no auth. This is a
   frontend-only prototype.
