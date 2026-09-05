@@ -7,10 +7,13 @@ employee up to speed.
 ## Tech stack
 
 - **Framework:** Flutter (Dart), single codebase targeting web/desktop/mobile
-- **State management:** Built-in `StatefulWidget` / `setState` only 
+- **State management:** Built-in `StatefulWidget` / `setState` only — no
+  Provider, Riverpod, Bloc, etc.
 - **Data:** Everything is in-memory (`List`/`Map` literals seeded at
-  startup).
-- **Backend:** Fontend-only prototype.
+  startup). **Nothing persists** — a page refresh or app restart resets
+  all data back to the seed values.
+- **Backend:** None. No HTTP client, no database, no auth. This is a
+  frontend-only prototype.
 
 ## Screens
 
@@ -66,6 +69,7 @@ something, not just decoration:
 - **Archive Employee** — employees can be archived to an "Onboarded" status via a per-card menu, hidden from the default view, and restored again (Phase 5)
 - **Persistence (Templates + Settings)** — these two screens save to local storage via `shared_preferences` and reload on startup, so they're the only parts of the app that survive a refresh/restart. Everything else is still in-memory only (see Known limitations).
 - **Reports metric cards** — Completion rate, Pending approvals, Nudge activity, and At-risk hires are all computed live from the Employees, Approvals, and Activity Log data (no more hardcoded numbers). Making this possible: the Employees and Approvals screens' lists are now `static`, so they're shared with Reports and also survive navigating away and back (previously they silently reset to the seed data every time you left and returned to those screens, since `main.dart` swaps screens by disposing/recreating them rather than keeping them alive).
+- **Approval Workflow quick-stat cards** — the "Pending / In Review / Approved / Needs Action" cards at the top of the Approval Workflow screen are now computed live from the same approval queue the list below shows, instead of fixed mock numbers.
 
 Beyond the proposal's scope (built as extra functionality, not required by
 Phase 1–5, but present in the app and kept working):
@@ -86,10 +90,6 @@ Phase 1–5, but present in the app and kept working):
 - **No real integrations.** The Integration Hub's Slack/Google/Teams/etc.
   connections are simulated locally; nothing actually calls those
   services.
-- **Approval Workflow's own quick-stat cards are still static** — the
-  "Pending / In Review / Approved / Needs Action" cards at the top of
-  that screen are fixed mock numbers (unlike Reports' metric cards,
-  which are now real).
 
 ## What can be done next
 
@@ -107,8 +107,6 @@ All Phase 1–5 proposal items are now implemented. Remaining ideas:
    rather than persisting today's fragmented per-screen copies as-is.
 3. Add authentication and role-based access (Admin/HR vs. Manager vs.
    New Hire), per the proposal's Phase 1 user roles.
-4. Wire the Approval Workflow screen's own quick-stat cards up to real
-   data the same way Reports' metric cards now are.
-5. Actually render/print the Export Completion Report's HTML (e.g. via
+4. Actually render/print the Export Completion Report's HTML (e.g. via
    a WebView or by writing it to a file) instead of only showing/
    copying the raw markup.
