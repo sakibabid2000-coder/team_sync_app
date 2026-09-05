@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'screens/activity_logs_screen.dart';
 import 'screens/announcements_screen.dart';
 import 'screens/approval_workflow_screen.dart';
 import 'screens/dashboard_screen.dart';
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Team Sync',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF6B46C1),
@@ -68,6 +70,7 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   int _selectedIndex = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<NavigationItem> _navigationItems = [
     NavigationItem(icon: Icons.dashboard, label: 'Dashboard', index: 0),
@@ -76,14 +79,15 @@ class _DashboardState extends State<Dashboard> {
     NavigationItem(icon: Icons.description, label: 'Templates', index: 3),
     NavigationItem(icon: Icons.approval, label: 'Approvals', index: 4),
     NavigationItem(icon: Icons.person_outline, label: 'Journey', index: 5),
-    NavigationItem(icon: Icons.announcement, label: 'Announcements', index: 6),
-    NavigationItem(icon: Icons.assessment, label: 'Reports', index: 7),
+    NavigationItem(icon: Icons.history, label: 'Activity Logs', index: 6),
+    NavigationItem(icon: Icons.announcement, label: 'Announcements', index: 7),
+    NavigationItem(icon: Icons.assessment, label: 'Reports', index: 8),
     NavigationItem(
       icon: Icons.integration_instructions,
       label: 'Integrations',
-      index: 8,
+      index: 9,
     ),
-    NavigationItem(icon: Icons.settings, label: 'Settings', index: 9),
+    NavigationItem(icon: Icons.settings, label: 'Settings', index: 10),
   ];
 
   Widget _buildContent(int index) {
@@ -101,12 +105,14 @@ class _DashboardState extends State<Dashboard> {
       case 5:
         return const EmployeeJourneyScreen();
       case 6:
-        return const AnnouncementsScreen();
+        return const ActivityLogsScreen();
       case 7:
-        return const ReportsScreen();
+        return const AnnouncementsScreen();
       case 8:
-        return const IntegrationHubScreen();
+        return const ReportsScreen();
       case 9:
+        return const IntegrationHubScreen();
+      case 10:
         return const SettingsScreen();
       default:
         return Container(
@@ -126,6 +132,19 @@ class _DashboardState extends State<Dashboard> {
     bool isWebView = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: !isWebView
+          ? Drawer(
+              child: Sidebar(
+                items: _navigationItems,
+                selectedIndex: _selectedIndex,
+                onItemSelected: (index) {
+                  setState(() => _selectedIndex = index);
+                  Navigator.of(context).pop(); // Close drawer on selection
+                },
+              ),
+            )
+          : null,
       body: Row(
         children: [
           // Sidebar for web view
@@ -158,7 +177,7 @@ class _DashboardState extends State<Dashboard> {
                         IconButton(
                           icon: const Icon(Icons.menu),
                           onPressed: () {
-                            // TODO: Show drawer on mobile
+                            _scaffoldKey.currentState?.openDrawer();
                           },
                         ),
                       Text(
@@ -176,15 +195,16 @@ class _DashboardState extends State<Dashboard> {
           ),
         ],
       ),
-      // Bottom navigation for mobile view
+      // Bottom navigation for mobile view (displays first 5 items)
       bottomNavigationBar: !isWebView
           ? BottomNavigationBar(
-              currentIndex: _selectedIndex,
+              currentIndex: _selectedIndex < 5 ? _selectedIndex : 0,
               onTap: (index) {
                 setState(() => _selectedIndex = index);
               },
               type: BottomNavigationBarType.fixed,
               items: _navigationItems
+                  .take(5)
                   .map(
                     (item) => BottomNavigationBarItem(
                       icon: Icon(item.icon),
@@ -227,8 +247,8 @@ class Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 220,
-      color: const Color(0xFF4C3A8F), // Dark purple from UI
+      width: 240,
+      color: const Color(0xFF4C3A8F),
       child: Column(
         children: [
           // Logo/Header
@@ -270,7 +290,7 @@ class Sidebar extends StatelessWidget {
                 return Container(
                   margin: const EdgeInsets.symmetric(
                     horizontal: 10,
-                    vertical: 5,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
@@ -279,6 +299,7 @@ class Sidebar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: ListTile(
+                    dense: true,
                     leading: Icon(
                       item.icon,
                       color: isSelected ? Colors.white : Colors.white70,
