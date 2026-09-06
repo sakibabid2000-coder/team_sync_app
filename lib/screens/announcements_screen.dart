@@ -1,48 +1,152 @@
 import 'package:flutter/material.dart';
 
-class AnnouncementsScreen extends StatelessWidget {
+class AnnouncementsScreen extends StatefulWidget {
   const AnnouncementsScreen({super.key});
+
+  /// Shared static list so an Admin posting here also drives the
+  /// site-wide banner rendered in main.dart (Phase 5).
+  static final List<AnnouncementItem> _announcements = [
+    AnnouncementItem(
+      title: 'Product rollout: Team workspace update',
+      audience: 'All employees',
+      date: 'Today • 9:30 AM',
+      summary: 'New workspace templates and onboarding checklists will be enabled for all new hires this week.',
+      priority: 'High',
+    ),
+    AnnouncementItem(
+      title: 'Town hall recap and feedback survey',
+      audience: 'Engineering & HR',
+      date: 'Tomorrow • 2:00 PM',
+      summary: 'Leadership will share onboarding findings from Q3 and collect feedback on the manager workflow.',
+      priority: 'Medium',
+    ),
+    AnnouncementItem(
+      title: 'Benefits enrollment reminder',
+      audience: 'New hires only',
+      date: 'Fri • 9:00 AM',
+      summary: 'Please complete benefits enrollment and payroll documentation before your first Friday review.',
+      priority: 'Medium',
+    ),
+  ];
+
+  static List<AnnouncementItem> get all => List.unmodifiable(_announcements);
+
+  /// Most recent announcement — read by main.dart for the top-of-every-page banner.
+  static AnnouncementItem? get latest =>
+      _announcements.isEmpty ? null : _announcements.first;
+
+  static void post(AnnouncementItem item) => _announcements.insert(0, item);
+
+  @override
+  State<AnnouncementsScreen> createState() => _AnnouncementsScreenState();
+}
+
+class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
+  void _showNewAnnouncementDialog() {
+    final titleController = TextEditingController();
+    final audienceController = TextEditingController();
+    final summaryController = TextEditingController();
+    String priority = 'Medium';
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('New Announcement'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(labelText: 'Title'),
+                ),
+                TextField(
+                  controller: audienceController,
+                  decoration: const InputDecoration(labelText: 'Audience'),
+                ),
+                TextField(
+                  controller: summaryController,
+                  decoration: const InputDecoration(labelText: 'Message'),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: priority,
+                  decoration: const InputDecoration(labelText: 'Priority'),
+                  items: ['High', 'Medium', 'Low']
+                      .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) setDialogState(() => priority = value);
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (titleController.text.isEmpty) return;
+                AnnouncementsScreen.post(
+                  AnnouncementItem(
+                    title: titleController.text,
+                    audience: audienceController.text.isEmpty
+                        ? 'All employees'
+                        : audienceController.text,
+                    date: 'Just now',
+                    summary: summaryController.text,
+                    priority: priority,
+                  ),
+                );
+                Navigator.pop(dialogContext);
+                setState(() {});
+              },
+              child: const Text('Post'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final announcements = [
-      AnnouncementItem(
-        title: 'Product rollout: Team workspace update',
-        audience: 'All employees',
-        date: 'Today • 9:30 AM',
-        summary: 'New workspace templates and onboarding checklists will be enabled for all new hires this week.',
-        priority: 'High',
-      ),
-      AnnouncementItem(
-        title: 'Town hall recap and feedback survey',
-        audience: 'Engineering & HR',
-        date: 'Tomorrow • 2:00 PM',
-        summary: 'Leadership will share onboarding findings from Q3 and collect feedback on the manager workflow.',
-        priority: 'Medium',
-      ),
-      AnnouncementItem(
-        title: 'Benefits enrollment reminder',
-        audience: 'New hires only',
-        date: 'Fri • 9:00 AM',
-        summary: 'Please complete benefits enrollment and payroll documentation before your first Friday review.',
-        priority: 'Medium',
-      ),
-    ];
+    final announcements = AnnouncementsScreen.all;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Announcements',
-            style: Theme.of(context).textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Share updates that keep the team aligned and informed.',
-            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Announcements',
+                    style: Theme.of(context).textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Share updates that keep the team aligned and informed.',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  ),
+                ],
+              ),
+              ElevatedButton.icon(
+                onPressed: _showNewAnnouncementDialog,
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('New Announcement'),
+              ),
+            ],
           ),
           const SizedBox(height: 24),
           LayoutBuilder(
