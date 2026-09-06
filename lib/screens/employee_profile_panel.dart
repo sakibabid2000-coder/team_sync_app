@@ -41,6 +41,12 @@ class _EmployeeProfilePanelState extends State<EmployeeProfilePanel> {
   ];
 
   EmployeeData get employee => widget.employee;
+  int get _computedProgress{
+    final total = _todaysTasks.length + _upcomingTasks.length;
+    if (total==0) return 0;
+    final completed = _todaysTasks.where((t) => t.isCompleted).length + _upcomingTasks.where((t)=>t.isCompleted).length;
+    return ((completed/total)*100).round();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +140,7 @@ class _EmployeeProfilePanelState extends State<EmployeeProfilePanel> {
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                             Text(
-                              '${employee.progress}%',
+                              '$_computedProgress%',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF6B46C1),
@@ -146,11 +152,11 @@ class _EmployeeProfilePanelState extends State<EmployeeProfilePanel> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(6),
                           child: LinearProgressIndicator(
-                            value: employee.progress / 100,
+                            value: _computedProgress / 100,
                             minHeight: 8,
                             backgroundColor: Colors.grey[200],
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              employee.progress == 100
+                              _computedProgress == 100
                                   ? Colors.green
                                   : const Color(0xFF6B46C1),
                             ),
@@ -256,7 +262,7 @@ class _EmployeeProfilePanelState extends State<EmployeeProfilePanel> {
   <h1>Onboarding Completion Report</h1>
   <p class="meta">
     <strong>${employee.name}</strong> &middot; ${employee.department}<br>
-    Progress: ${employee.progress}% &middot; Generated ${_formatTaskDate(DateTime.now())}
+    Progress: $_computedProgress% &middot; Generated ${_formatTaskDate(DateTime.now())}
   </p>
   <table>
     <tr><th>Completed Task</th><th>Due Date</th></tr>
