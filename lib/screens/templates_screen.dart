@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'create_template_dialog.dart';
 
@@ -10,11 +13,14 @@ class TemplatesScreen extends StatefulWidget {
 }
 
 class _TemplatesScreenState extends State<TemplatesScreen> {
+  static const _prefsKey = 'templates_data';
+
   late List<TemplateData> templates;
 
   @override
   void initState() {
     super.initState();
+    // Seed data shown immediately; overwritten by persisted data if present.
     templates = [
       TemplateData(
         id: '1',
@@ -49,6 +55,30 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
         createdDate: 'March 20, 2024',
       ),
     ];
+    _loadTemplates();
+  }
+
+  Future<void> _loadTemplates() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString(_prefsKey);
+    if (stored == null) {
+      // First run: persist the seed data so it's there on next load.
+      await _saveTemplates();
+      return;
+    }
+    if (!mounted) return;
+    final decoded = jsonDecode(stored) as List<dynamic>;
+    setState(() {
+      templates = decoded
+          .map((json) => TemplateData.fromJson(json as Map<String, dynamic>))
+          .toList();
+    });
+  }
+
+  Future<void> _saveTemplates() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = jsonEncode(templates.map((t) => t.toJson()).toList());
+    await prefs.setString(_prefsKey, encoded);
   }
 
   void _createNewTemplate() {
@@ -61,6 +91,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
           setState(() {
             templates.add(template);
           });
+          _saveTemplates();
         },
       ),
     );
@@ -76,6 +107,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
             final index = templates.indexWhere((t) => t.id == updated.id);
             if (index != -1) templates[index] = updated;
           });
+          _saveTemplates();
         },
       ),
     );
@@ -260,6 +292,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                         setState(() {
                           templates.removeWhere((t) => t.id == template.id);
                         });
+                        _saveTemplates();
                       },
                       onManage: () => _manageTemplateTasks(template),
                     ),
@@ -478,6 +511,26 @@ class TemplateData {
       description: description ?? this.description,
       taskCount: taskCount,
       createdDate: createdDate,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'department': department,
+    'description': description,
+    'taskCount': taskCount,
+    'createdDate': createdDate,
+  };
+
+  factory TemplateData.fromJson(Map<String, dynamic> json) {
+    return TemplateData(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      department: json['department'] as String,
+      description: json['description'] as String,
+      taskCount: json['taskCount'] as int,
+      createdDate: json['createdDate'] as String,
     );
   }
 }
